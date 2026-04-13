@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 typedef struct Node
 {
@@ -12,21 +13,31 @@ typedef struct Node
 Node* create_node(const char* str)
 {
     Node* node = (Node*)malloc(sizeof(Node));
+    if (node == NULL)
+        return NULL; // malloc failed
+
     node->next = node->prev = NULL;
     node->data = (char*)malloc(strlen(str) + 1); // +1 for NUL terminator
+    if (node->data == NULL)
+    {
+        // malloc failed
+        free(node);
+        return NULL;
+    }
+
     strcpy(node->data, str);
 
     return node;
 }
 
-void destroy_node(Node** node)
+void destroy_node(Node* node)
 {
     if (node == NULL)
         return;
 
-    if ((*node)->data != NULL)
-        free((*node)->data);
-    free(*node);
+    printf("Deleting node: [addr: %p, data: %s]...\n", (void*)node, node->data);
+    free(node->data);
+    free(node);
 }
 
 typedef struct List
@@ -38,23 +49,24 @@ typedef struct List
 List* list_init()
 {
     List* ret = (List*)malloc(sizeof(List));
+    if (ret == NULL)
+        return NULL; // malloc failed
+
     ret->front = NULL;
     ret->back = NULL;
     return ret;
 }
 
-void list_destruct(List* list)
+void list_destroy(List* list)
 {
     if (list == NULL)
         return;
 
-    for (Node *itr = list->front, *nItr = list->front->next; itr != NULL; itr = nItr)
+    while (list->front != NULL)
     {
-        nItr = itr->next;
-
-        //printf("Deleting \"%p\"...\n", itr);
-
-        destroy_node(&itr);
+        Node* cur = list->front;
+        list->front = list->front->next;
+        destroy_node(cur);
     }
 
     free(list);
@@ -66,6 +78,8 @@ List* list_insert_front(List* list, const char* str)
         return NULL;
 
     Node* node = create_node(str);
+    if (node == NULL)
+        return list; // TODO: create_node failed
 
     if (list->front != NULL)
     {
@@ -87,6 +101,8 @@ List* list_insert_back(List* list, const char* str)
         return NULL;
 
     Node* node = create_node(str);
+    if (node == NULL)
+        return list; // TODO: create_node failed
 
     if (list->back != NULL)
     {
@@ -102,7 +118,7 @@ List* list_insert_back(List* list, const char* str)
     return list;
 }
 
-List* list_insert_at(List* list, int index, const char* str)
+List* list_insert_at(List* list, uint32_t index, const char* str)
 {
     if (list == NULL)
         return NULL;
@@ -114,10 +130,15 @@ List* list_insert_at(List* list, int index, const char* str)
         --index;
     }
 
+    if (index > 0)
+        return NULL; // Inserting out of bounds
+
     if (itr != NULL)
     {
         // Create and insert node before itr
         Node* node = create_node(str);
+        if (node == NULL)
+            return list; // TODO: create_node failed
 
         if (itr->prev != NULL)
             itr->prev->next = node;
@@ -133,7 +154,7 @@ List* list_insert_at(List* list, int index, const char* str)
     return list;
 }
 
-void list_remove(List* list, int index)
+void list_remove(List* list, uint32_t index)
 {
     if (list == NULL)
         return;
@@ -157,16 +178,16 @@ void list_remove(List* list, int index)
         if (itr == list->back)
             list->back = itr->prev;
 
-        destroy_node(&itr);
+        destroy_node(itr);
     }
 }
 
-int list_search(List* list, const char* str)
+int32_t list_search(List* list, const char* str)
 {
     if (list == NULL)
         return -1;
 
-    int index = 0;
+    int32_t index = 0;
     for (Node* itr = list->front; itr != NULL; itr = itr->next, ++index)
     {
         if (strcmp(itr->data, str) == 0)
@@ -183,7 +204,7 @@ void list_print_all_forward(List* list)
 
     for (Node* itr = list->front; itr != NULL; itr = itr->next)
     {
-        printf("addr: %p, data: %s, prev: %p, next: %p\n", itr, itr->data, itr->prev, itr->next);
+        printf("addr: %p, data: %s, prev: %p, next: %p\n", (void*)itr, itr->data, (void*)itr->prev, (void*)itr->next);
     }
 }
 
@@ -194,7 +215,7 @@ void list_print_all_backward(List* list)
 
     for (Node* itr = list->back; itr != NULL; itr = itr->prev)
     {
-        printf("addr: %p, data: %s, prev: %p, next: %p\n", itr, itr->data, itr->prev, itr->next);
+        printf("addr: %p, data: %s, prev: %p, next: %p\n", (void*)itr, itr->data, (void*)itr->prev, (void*)itr->next);
     }
 }
 
@@ -211,10 +232,10 @@ int main(void)
     list_print_all_forward(list);
     printf("\n");
 
-    printf("\"%s\" is at index %d\n", strs[2], list_search(list, strs[2]));
-    printf("\"%s\" is at index %d\n", strs[3], list_search(list, strs[3]));
-    printf("\"%s\" is at index %d\n", strs[0], list_search(list, strs[0]));
-    printf("\"%s\" is at index %d\n", "asdf", list_search(list, "asdf"));
+    printf("\"%s\" is at index %d (Expected: 2)\n", strs[2], list_search(list, strs[2]));
+    printf("\"%s\" is at index %d (Expected: 3)\n", strs[3], list_search(list, strs[3]));
+    printf("\"%s\" is at index %d (Expected: 0)\n", strs[0], list_search(list, strs[0]));
+    printf("\"%s\" is at index %d (Expected: -1)\n", "asdf", list_search(list, "asdf"));
     printf("\n");
 
     list_print_all_backward(list);
@@ -227,8 +248,8 @@ int main(void)
     printf("\n");
 
     printf("Removing nodes...\n");
-    list_remove(list, 3);
-    list_remove(list, 4);
+    list_remove(list, 3); // Remove "Cat"
+    list_remove(list, 4); // Remove "Dyson"
 
     list_print_all_forward(list);
     printf("\n");
@@ -240,5 +261,5 @@ int main(void)
     list_print_all_forward(list);
     printf("\n");
 
-    list_destruct(list);
+    list_destroy(list);
 }
