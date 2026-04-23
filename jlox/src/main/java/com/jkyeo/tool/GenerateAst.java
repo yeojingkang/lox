@@ -45,15 +45,30 @@ public class GenerateAst {
         writer.println();
         writer.println("abstract class " + baseName + "{");
 
+        defineVisitor(writer, baseName, types);
+
+        writer.println();
+        writer.println("  abstract <R> R accept(Visitor<R> visitor);");
+
+        // AST types
         for (final var type : types.entrySet()) {
             final var className = type.getKey();
             final var fields = type.getValue();
-            defineType(writer, baseName, className, fields);
             writer.println();
+            defineType(writer, baseName, className, fields);
         }
 
         writer.println("}");
         writer.close();
+    }
+
+    private static void defineVisitor(PrintWriter writer, String baseName, Map<String, List<String>> types) {
+        writer.println("  interface Visitor<R> {");
+
+        for (final var typeName : types.keySet())
+            writer.println("    R visit" + typeName + baseName + "(" + typeName + " " + baseName.toLowerCase() + ");");
+
+        writer.println("  }");
     }
 
     private static void defineType(PrintWriter writer, String baseName, String className, List<String> fields) {
@@ -65,6 +80,13 @@ public class GenerateAst {
             final var name = field.split(" ")[1].trim();
             writer.println("      this." + name + " = " + name + ";");
         }
+        writer.println("    }");
+
+        // Visitor pattern
+        writer.println();
+        writer.println("    @Override");
+        writer.println("    <R> R accept(Visitor<R> visitor) {");
+        writer.println("      return visitor.visit" + className + baseName + "(this);");
         writer.println("    }");
 
         // Fields
