@@ -4,7 +4,8 @@ import java.util.List;
 import java.util.function.Supplier;
 
 // Lox's grammar:
-// expression     → equality ;
+// expression     → comma ;
+// comma          → equality ("," equality)* ;
 // equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 // comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 // term           → factor ( ( "-" | "+" ) factor )* ;
@@ -32,7 +33,13 @@ public class Parser {
     }
 
     private Expr expression() {
-        return equality();
+        return comma();
+    }
+
+    private Expr comma() {
+        return leftAssocBinary(
+                new TokenType[]{ TokenType.COMMA },
+                this::equality);
     }
 
     private Expr equality() {
