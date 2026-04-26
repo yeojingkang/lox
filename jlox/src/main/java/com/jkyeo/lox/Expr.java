@@ -4,29 +4,30 @@ import java.util.List;
 
 abstract class Expr{
   interface Visitor<R> {
-    R visitBinaryExpr(Binary expr);
+    R visitTernaryExpr(Ternary expr);
     R visitUnaryExpr(Unary expr);
-    R visitLiteralExpr(Literal expr);
     R visitGroupingExpr(Grouping expr);
+    R visitLiteralExpr(Literal expr);
+    R visitBinaryExpr(Binary expr);
   }
 
   abstract <R> R accept(Visitor<R> visitor);
 
-  static class Binary extends Expr {
-    Binary(Expr left, Token operator, Expr right) {
-      this.left = left;
-      this.operator = operator;
-      this.right = right;
+  static class Ternary extends Expr {
+    Ternary(Expr condition, Expr trueBody, Expr falseBody) {
+      this.condition = condition;
+      this.trueBody = trueBody;
+      this.falseBody = falseBody;
     }
 
     @Override
     <R> R accept(Visitor<R> visitor) {
-      return visitor.visitBinaryExpr(this);
+      return visitor.visitTernaryExpr(this);
     }
 
-    final Expr left;
-    final Token operator;
-    final Expr right;
+    final Expr condition;
+    final Expr trueBody;
+    final Expr falseBody;
   }
 
   static class Unary extends Expr {
@@ -44,6 +45,19 @@ abstract class Expr{
     final Expr right;
   }
 
+  static class Grouping extends Expr {
+    Grouping(Expr expression) {
+      this.expression = expression;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitGroupingExpr(this);
+    }
+
+    final Expr expression;
+  }
+
   static class Literal extends Expr {
     Literal(Object value) {
       this.value = value;
@@ -57,16 +71,20 @@ abstract class Expr{
     final Object value;
   }
 
-  static class Grouping extends Expr {
-    Grouping(Expr expression) {
-      this.expression = expression;
+  static class Binary extends Expr {
+    Binary(Expr left, Token operator, Expr right) {
+      this.left = left;
+      this.operator = operator;
+      this.right = right;
     }
 
     @Override
     <R> R accept(Visitor<R> visitor) {
-      return visitor.visitGroupingExpr(this);
+      return visitor.visitBinaryExpr(this);
     }
 
-    final Expr expression;
+    final Expr left;
+    final Token operator;
+    final Expr right;
   }
 }

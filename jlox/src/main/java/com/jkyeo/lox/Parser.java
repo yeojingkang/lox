@@ -5,7 +5,8 @@ import java.util.function.Supplier;
 
 // Lox's grammar:
 // expression     → comma ;
-// comma          → equality ("," equality)* ;
+// comma          → ternary ("," ternary)* ;
+// ternary        → equality ("?" expression ":" ternary)? ;
 // equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 // comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 // term           → factor ( ( "-" | "+" ) factor )* ;
@@ -39,7 +40,20 @@ public class Parser {
     private Expr comma() {
         return leftAssocBinary(
                 new TokenType[]{ TokenType.COMMA },
-                this::equality);
+                this::ternary);
+    }
+
+    private Expr ternary() {
+        final var expr = equality();
+
+        if (match(TokenType.QUESTION)) {
+            final var trueBody = expression();
+            consume(TokenType.COLON, "Expected : after ?");
+            final var falseBody = ternary();
+            return new Expr.Ternary(expr, trueBody, falseBody);
+        }
+
+        return expr;
     }
 
     private Expr equality() {
@@ -90,7 +104,7 @@ public class Parser {
 
         if (match(TokenType.LEFT_PAREN)) {
             final var expr = expression();
-            consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
+            consume(TokenType.RIGHT_PAREN, "Expected ')' after expression.");
             return new Expr.Grouping(expr);
         }
 

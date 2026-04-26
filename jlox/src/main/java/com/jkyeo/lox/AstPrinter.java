@@ -25,6 +25,11 @@ public class AstPrinter implements Expr.Visitor<String>{
         return parenthesize("group", expr.expression);
     }
 
+    @Override
+    public String visitTernaryExpr(Expr.Ternary expr) {
+        return parenthesize("?:", expr.condition, expr.trueBody, expr.falseBody);
+    }
+
     private String parenthesize(String name, Expr... exprs) {
         final var builder = new StringBuilder();
 

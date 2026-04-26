@@ -31,6 +31,11 @@ public class GenerateAst {
                 Map.entry("Unary", Arrays.asList(
                         "Token operator",
                         "Expr right"
+                )),
+                Map.entry("Ternary", Arrays.asList(
+                        "Expr condition",
+                        "Expr trueBody",
+                        "Expr falseBody"
                 ))
         ));
     }

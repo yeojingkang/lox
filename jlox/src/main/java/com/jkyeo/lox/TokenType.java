@@ -5,7 +5,9 @@ enum TokenType {
     LEFT_BRACE, RIGHT_BRACE,
     COMMA, DOT, SEMICOLON,
     MINUS, PLUS, STAR, SLASH,
+    QUESTION, COLON,
 
+    // Comparisons
     BANG, BANG_EQ,
     EQ, EQ_EQ,
     GREATER, GREATER_EQ,
