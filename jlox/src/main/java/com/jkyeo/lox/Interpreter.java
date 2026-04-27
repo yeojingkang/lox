@@ -55,8 +55,10 @@ public class Interpreter implements Expr.Visitor<Object> {
             case PLUS -> {
                 if (lvalue instanceof Double && rvalue instanceof Double)
                     yield (double)lvalue + (double)rvalue;
-                if (lvalue instanceof String && rvalue instanceof String)
-                    yield (String)lvalue + (String)rvalue;
+                if (lvalue instanceof String)
+                    yield (String)lvalue + stringify(rvalue);
+                if (rvalue instanceof String)
+                    yield stringify(lvalue) + (String)rvalue;
                 throw new RuntimeError(expr.operator, "Operands must be two numbers or two strings.");
             }
 
