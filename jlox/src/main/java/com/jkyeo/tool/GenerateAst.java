@@ -17,21 +17,22 @@ public class GenerateAst {
         final var outputDir = args[0];
 
         defineAst(outputDir, "Expr", Map.ofEntries(
-                Map.entry("Binary", Arrays.asList(
+                Map.entry("Binary", List.of(
                         "Expr left",
                         "Token operator",
                         "Expr right"
                 )),
-                Map.entry("Grouping", List.of(
-                        "Expr expression"
-                )),
-                Map.entry("Literal", List.of(
-                        "Object value"
-                )),
-                Map.entry("Unary", Arrays.asList(
+                Map.entry("Grouping", List.of("Expr expression")),
+                Map.entry("Literal", List.of("Object value")),
+                Map.entry("Unary", List.of(
                         "Token operator",
                         "Expr right"
                 ))
+        ));
+
+        defineAst(outputDir, "Stmt", Map.ofEntries(
+                Map.entry("Expression", List.of("Expr expression")),
+                Map.entry("Print", List.of("Expr expression"))
         ));
     }
 

@@ -1,13 +1,31 @@
 package com.jkyeo.lox;
 
-public class Interpreter implements Expr.Visitor<Object> {
-    void interpret(Expr expression) {
+import java.util.List;
+
+public class Interpreter implements
+    Expr.Visitor<Object>,
+    Stmt.Visitor<Void> {
+    void interpret(List<Stmt> statements) {
         try {
-            final var value = evaluate(expression);
-            System.out.println(stringify(value));
+            for (final var statement : statements) {
+                execute(statement);
+            }
         } catch (RuntimeError err) {
             Lox.runtimeError(err);
         }
+    }
+
+    @Override
+    public Void visitPrintStmt(Stmt.Print stmt) {
+        final var value = evaluate(stmt.expression);
+        System.out.println(stringify(value));
+        return null;
+    }
+
+    @Override
+    public Void visitExpressionStmt(Stmt.Expression stmt) {
+        evaluate(stmt.expression);
+        return null;
     }
 
     @Override
@@ -91,6 +109,10 @@ public class Interpreter implements Expr.Visitor<Object> {
     private void checkNumberOperands(Token operator, Object left, Object right) {
         if (!(left instanceof Double && right instanceof Double))
             throw new RuntimeError(operator, "Operands must be numbers.");
+    }
+
+    private void execute(Stmt statement) {
+        statement.accept(this);
     }
 
     private Object evaluate(Expr expr) {

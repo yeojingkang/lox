@@ -51,11 +51,11 @@ public class Lox {
         final var tokens = scanner.scanTokens();
 
         final var parser = new Parser(tokens);
-        final var expr = parser.parse();
+        final var statements = parser.parse();
 
         if (hadError) return;
 
-        interpreter.interpret(expr);
+        interpreter.interpret(statements);
     }
 
     static void error(int line, String message) {

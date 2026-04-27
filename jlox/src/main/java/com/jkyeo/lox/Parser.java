@@ -1,9 +1,19 @@
 package com.jkyeo.lox;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
 // Lox's grammar:
+//program        → statement* EOF ;
+
+//statement      → exprStmt
+//               | printStmt ;
+
+//exprStmt       → expression ";" ;
+//printStmt      → "print" expression ";" ;
+
+/***************** Expressions *****************/
 // expression     → equality ;
 // equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 // comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
@@ -11,6 +21,8 @@ import java.util.function.Supplier;
 // factor         → unary ( ( "/" | "*" ) unary )* ;
 // unary          → ( "!" | "-" ) unary | primary ;
 // primary        → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
+
+
 
 // Recursive Descent parser
 public class Parser {
@@ -23,12 +35,31 @@ public class Parser {
         this.tokens = tokens;
     }
 
-    Expr parse() {
-        try {
-            return expression();
-        } catch (ParseError e) {
-            return null; // TODO: Remove temp error handling code
+    List<Stmt> parse() {
+        List<Stmt> statements = new ArrayList<>();
+        while (!isAtEnd()) {
+            statements.add(statement());
         }
+
+        return statements;
+    }
+
+    private Stmt statement() {
+        if (match(TokenType.PRINT)) return printStatement();
+
+        return exprStatement();
+    }
+
+    private Stmt printStatement() {
+        final var expr = expression();
+        consume(TokenType.SEMICOLON, "Expected ';' after value.");
+        return new Stmt.Print(expr);
+    }
+
+    private Stmt exprStatement() {
+        final var expr = expression();
+        consume(TokenType.SEMICOLON, "Expected ';' after expression.");
+        return new Stmt.Expression(expr);
     }
 
     private Expr expression() {
