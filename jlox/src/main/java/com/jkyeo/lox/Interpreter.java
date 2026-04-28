@@ -5,6 +5,8 @@ import java.util.List;
 public class Interpreter implements
     Expr.Visitor<Object>,
     Stmt.Visitor<Void> {
+    private final Environment env = new Environment();
+
     void interpret(List<Stmt> statements) {
         try {
             for (final var statement : statements) {
@@ -13,6 +15,14 @@ public class Interpreter implements
         } catch (RuntimeError err) {
             Lox.runtimeError(err);
         }
+    }
+
+    @Override
+    public Void visitVarStmt(Stmt.Var stmt) {
+        env.define(
+                stmt.name.lexeme,
+                stmt.init != null ? evaluate(stmt.init) : null);
+        return null;
     }
 
     @Override
@@ -26,6 +36,11 @@ public class Interpreter implements
     public Void visitExpressionStmt(Stmt.Expression stmt) {
         evaluate(stmt.expression);
         return null;
+    }
+
+    @Override
+    public Object visitVariableExpr(Expr.Variable expr) {
+        return env.get(expr.name);
     }
 
     @Override

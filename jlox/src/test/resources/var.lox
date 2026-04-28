@@ -1,0 +1,8 @@
+var a;
+var b = 1;
+print a;
+print b;
+// 7 + ; // Parse error
+// / 0; // Parse error
+print 1 + 3;
+

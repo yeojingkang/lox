@@ -4,11 +4,27 @@ import java.util.List;
 
 abstract class Stmt{
   interface Visitor<R> {
+    R visitVarStmt(Var stmt);
     R visitPrintStmt(Print stmt);
     R visitExpressionStmt(Expression stmt);
   }
 
   abstract <R> R accept(Visitor<R> visitor);
+
+  static class Var extends Stmt {
+    Var(Token name, Expr init) {
+      this.name = name;
+      this.init = init;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitVarStmt(this);
+    }
+
+    final Token name;
+    final Expr init;
+  }
 
   static class Print extends Stmt {
     Print(Expr expression) {

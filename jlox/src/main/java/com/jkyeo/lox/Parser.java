@@ -5,13 +5,18 @@ import java.util.List;
 import java.util.function.Supplier;
 
 // Lox's grammar:
-//program        → statement* EOF ;
+// program        → declaration* EOF ;
 
-//statement      → exprStmt
-//               | printStmt ;
+// declaration    → varDecl
+//                | statement ;
 
-//exprStmt       → expression ";" ;
-//printStmt      → "print" expression ";" ;
+// varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
+
+// statement      → exprStmt
+//                | printStmt ;
+
+// exprStmt       → expression ";" ;
+// printStmt      → "print" expression ";" ;
 
 /***************** Expressions *****************/
 // expression     → equality ;
@@ -20,7 +25,7 @@ import java.util.function.Supplier;
 // term           → factor ( ( "-" | "+" ) factor )* ;
 // factor         → unary ( ( "/" | "*" ) unary )* ;
 // unary          → ( "!" | "-" ) unary | primary ;
-// primary        → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
+// primary        → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" | IDENTIFIER ;
 
 
 
@@ -38,10 +43,32 @@ public class Parser {
     List<Stmt> parse() {
         List<Stmt> statements = new ArrayList<>();
         while (!isAtEnd()) {
-            statements.add(statement());
+            statements.add(declaration());
         }
 
         return statements;
+    }
+
+    private Stmt declaration() {
+        try {
+            if (match(TokenType.VAR)) return varDeclaration();
+            return statement();
+        } catch (ParseError err) {
+            synchronize();
+            return null;
+        }
+    }
+
+    private Stmt varDeclaration() {
+        final var name = consume(TokenType.IDENTIFIER, "Expected variable name.");
+
+        final var init = match(TokenType.EQ)
+                ? expression()
+                : null;
+
+        consume(TokenType.SEMICOLON, "Expected ';' after variable declaration.");
+
+        return new Stmt.Var(name, init);
     }
 
     private Stmt statement() {
@@ -111,6 +138,9 @@ public class Parser {
 
         if (match(TokenType.NUMBER, TokenType.STRING))
             return new Expr.Literal(previous().literal);
+
+        if (match(TokenType.IDENTIFIER))
+            return new Expr.Variable(previous());
 
         if (match(TokenType.LEFT_PAREN)) {
             final var expr = expression();

@@ -5,9 +5,10 @@ import java.util.List;
 abstract class Expr{
   interface Visitor<R> {
     R visitUnaryExpr(Unary expr);
+    R visitVariableExpr(Variable expr);
+    R visitBinaryExpr(Binary expr);
     R visitLiteralExpr(Literal expr);
     R visitGroupingExpr(Grouping expr);
-    R visitBinaryExpr(Binary expr);
   }
 
   abstract <R> R accept(Visitor<R> visitor);
@@ -23,6 +24,36 @@ abstract class Expr{
       return visitor.visitUnaryExpr(this);
     }
 
+    final Token operator;
+    final Expr right;
+  }
+
+  static class Variable extends Expr {
+    Variable(Token name) {
+      this.name = name;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitVariableExpr(this);
+    }
+
+    final Token name;
+  }
+
+  static class Binary extends Expr {
+    Binary(Expr left, Token operator, Expr right) {
+      this.left = left;
+      this.operator = operator;
+      this.right = right;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitBinaryExpr(this);
+    }
+
+    final Expr left;
     final Token operator;
     final Expr right;
   }
@@ -51,22 +82,5 @@ abstract class Expr{
     }
 
     final Expr expression;
-  }
-
-  static class Binary extends Expr {
-    Binary(Expr left, Token operator, Expr right) {
-      this.left = left;
-      this.operator = operator;
-      this.right = right;
-    }
-
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitBinaryExpr(this);
-    }
-
-    final Expr left;
-    final Token operator;
-    final Expr right;
   }
 }

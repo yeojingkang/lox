@@ -27,12 +27,17 @@ public class GenerateAst {
                 Map.entry("Unary", List.of(
                         "Token operator",
                         "Expr right"
-                ))
+                )),
+                Map.entry("Variable", List.of("Token name"))
         ));
 
         defineAst(outputDir, "Stmt", Map.ofEntries(
                 Map.entry("Expression", List.of("Expr expression")),
-                Map.entry("Print", List.of("Expr expression"))
+                Map.entry("Print", List.of("Expr expression")),
+                Map.entry("Var", List.of(
+                        "Token name",
+                        "Expr init"
+                ))
         ));
     }
 
