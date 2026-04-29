@@ -3,7 +3,6 @@ package com.jkyeo.tool;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -28,7 +27,11 @@ public class GenerateAst {
                         "Token operator",
                         "Expr right"
                 )),
-                Map.entry("Variable", List.of("Token name"))
+                Map.entry("Variable", List.of("Token name")),
+                Map.entry("Assign", List.of(
+                        "Token name",
+                        "Expr value"
+                ))
         ));
 
         defineAst(outputDir, "Stmt", Map.ofEntries(

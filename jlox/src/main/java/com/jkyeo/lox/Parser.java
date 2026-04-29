@@ -19,13 +19,16 @@ import java.util.function.Supplier;
 // printStmt      → "print" expression ";" ;
 
 /***************** Expressions *****************/
-// expression     → equality ;
+// expression     → assignment ;
+// assignment     → IDENTIFIER "=" assignment
+//                | equality ;
 // equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 // comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 // term           → factor ( ( "-" | "+" ) factor )* ;
 // factor         → unary ( ( "/" | "*" ) unary )* ;
 // unary          → ( "!" | "-" ) unary | primary ;
-// primary        → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" | IDENTIFIER ;
+// primary        → NUMBER | STRING | "true" | "false" | "nil"
+//                | "(" expression ")" | IDENTIFIER ;
 
 
 
@@ -90,7 +93,24 @@ public class Parser {
     }
 
     private Expr expression() {
-        return equality();
+        return assignment();
+    }
+
+    private Expr assignment() {
+        final var expr = equality();
+
+        if (match(TokenType.EQ)) {
+            final var eq = previous();
+            final var value = assignment();
+
+            if (expr instanceof Expr.Variable varExpr) {
+                return new Expr.Assign(varExpr.name, value);
+            }
+
+            error(eq, "Invalid assignment target.");
+        }
+
+        return expr;
     }
 
     private Expr equality() {

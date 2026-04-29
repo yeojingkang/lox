@@ -17,6 +17,8 @@ public class Interpreter implements
         }
     }
 
+    // Statements
+
     @Override
     public Void visitVarStmt(Stmt.Var stmt) {
         env.define(
@@ -36,6 +38,15 @@ public class Interpreter implements
     public Void visitExpressionStmt(Stmt.Expression stmt) {
         evaluate(stmt.expression);
         return null;
+    }
+
+    // Expressions
+
+    @Override
+    public Object visitAssignExpr(Expr.Assign expr) {
+        final var value = evaluate(expr.value);
+        this.env.assign(expr.name, value);
+        return value;
     }
 
     @Override
