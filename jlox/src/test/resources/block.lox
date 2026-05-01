@@ -1,0 +1,12 @@
+var a = "global a";
+print a;
+
+{
+    var a = "local a";
+    var b = "local b";
+    print a;
+    print b;
+}
+
+print a;
+// print b; // Accessing undefined var in scope

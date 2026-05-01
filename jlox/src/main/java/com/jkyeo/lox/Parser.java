@@ -1,5 +1,6 @@
 package com.jkyeo.lox;
 
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -13,10 +14,12 @@ import java.util.function.Supplier;
 // varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 
 // statement      → exprStmt
-//                | printStmt ;
+//                | printStmt
+//                | block ;
 
 // exprStmt       → expression ";" ;
 // printStmt      → "print" expression ";" ;
+// block          → "{" declaration* "}" ;
 
 /***************** Expressions *****************/
 // expression     → assignment ;
@@ -76,6 +79,7 @@ public class Parser {
 
     private Stmt statement() {
         if (match(TokenType.PRINT)) return printStatement();
+        if (match(TokenType.LEFT_BRACE)) return new Stmt.Block(block());
 
         return exprStatement();
     }
@@ -84,6 +88,17 @@ public class Parser {
         final var expr = expression();
         consume(TokenType.SEMICOLON, "Expected ';' after value.");
         return new Stmt.Print(expr);
+    }
+
+    private List<Stmt> block() {
+        final var statements = new ArrayList<Stmt>();
+
+        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+            statements.add(declaration());
+        }
+
+        consume(TokenType.RIGHT_BRACE, "Expected '}' after block.");
+        return statements;
     }
 
     private Stmt exprStatement() {

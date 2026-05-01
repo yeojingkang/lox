@@ -5,7 +5,7 @@ import java.util.List;
 public class Interpreter implements
     Expr.Visitor<Object>,
     Stmt.Visitor<Void> {
-    private final Environment env = new Environment();
+    private Environment env = new Environment();
 
     void interpret(List<Stmt> statements) {
         try {
@@ -37,6 +37,12 @@ public class Interpreter implements
     @Override
     public Void visitExpressionStmt(Stmt.Expression stmt) {
         evaluate(stmt.expression);
+        return null;
+    }
+
+    @Override
+    public Void visitBlockStmt(Stmt.Block stmt) {
+        executeBlock(stmt.statements, new Environment(env));
         return null;
     }
 
@@ -139,6 +145,19 @@ public class Interpreter implements
 
     private void execute(Stmt statement) {
         statement.accept(this);
+    }
+
+    // TODO: Change visit pattern to take an Environment context to avoid mutating env
+    private void executeBlock(List<Stmt> statements, Environment env) {
+        final var prevEnv = this.env;
+        try {
+            this.env = env;
+            for (final var statement : statements) {
+                execute(statement);
+            }
+        } finally {
+            this.env = prevEnv;
+        }
     }
 
     private Object evaluate(Expr expr) {

@@ -40,7 +40,8 @@ public class GenerateAst {
                 Map.entry("Var", List.of(
                         "Token name",
                         "Expr init"
-                ))
+                )),
+                Map.entry("Block", List.of("List<Stmt> statements"))
         ));
     }
 
