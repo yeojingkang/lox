@@ -39,8 +39,12 @@ public class Lox {
 
         while (true) {
             System.out.print("> ");
-            final var line = reader.readLine(); // TODO: Read until empty line (or something to denote end of expr/stmt) before run()
+            var line = reader.readLine(); // TODO: Read until empty line (or something to denote end of expr/stmt) before run()
             if (line == null) break;
+
+            if (!line.endsWith(";") && !line.endsWith("}"))
+                line = "print " + line + ";"; // Assume user entered an expression
+
             run(line);
             hadError = false;
         }
