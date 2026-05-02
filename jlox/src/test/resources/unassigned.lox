@@ -1,0 +1,11 @@
+var a = 1;
+var b = nil;
+var c;
+var d;
+
+c = nil;
+
+print a;
+print b;
+print c;
+print d;

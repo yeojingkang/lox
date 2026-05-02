@@ -21,9 +21,10 @@ public class Interpreter implements
 
     @Override
     public Void visitVarStmt(Stmt.Var stmt) {
-        env.define(
-                stmt.name.lexeme,
-                stmt.init != null ? evaluate(stmt.init) : null);
+        if (stmt.init != null)
+            env.define(stmt.name.lexeme, evaluate(stmt.init));
+        else
+            env.define(stmt.name.lexeme);
         return null;
     }
 
