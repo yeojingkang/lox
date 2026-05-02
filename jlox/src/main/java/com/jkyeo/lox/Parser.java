@@ -1,6 +1,5 @@
 package com.jkyeo.lox;
 
-import java.sql.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -14,17 +13,22 @@ import java.util.function.Supplier;
 // varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 
 // statement      → exprStmt
+//                | ifStmt
 //                | printStmt
 //                | block ;
 
+// ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
 // exprStmt       → expression ";" ;
 // printStmt      → "print" expression ";" ;
 // block          → "{" declaration* "}" ;
 
 /***************** Expressions *****************/
 // expression     → assignment ;
+
 // assignment     → IDENTIFIER "=" assignment
-//                | equality ;
+//                | logic_or ;
+// logic_or       → logic_and ( "or" logic_and )* ;
+// logic_and      → equality ( "and" equality )* ;
 // equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 // comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 // term           → factor ( ( "-" | "+" ) factor )* ;
@@ -78,10 +82,22 @@ public class Parser {
     }
 
     private Stmt statement() {
+        if (match(TokenType.IF)) return ifStatement();
         if (match(TokenType.PRINT)) return printStatement();
         if (match(TokenType.LEFT_BRACE)) return new Stmt.Block(block());
 
         return exprStatement();
+    }
+
+    private Stmt ifStatement() {
+        consume(TokenType.LEFT_PAREN, "Expected '(' after if.");
+        final var condition = expression();
+        consume(TokenType.RIGHT_PAREN, "Expected ')' after if condition.");
+
+        final var thenBranch = statement();
+        final var elseBranch = match(TokenType.ELSE) ? statement() : null;
+
+        return new Stmt.If(condition, thenBranch, elseBranch);
     }
 
     private Stmt printStatement() {
@@ -112,7 +128,7 @@ public class Parser {
     }
 
     private Expr assignment() {
-        final var expr = equality();
+        final var expr = logicOr();
 
         if (match(TokenType.EQ)) {
             final var eq = previous();
@@ -126,6 +142,20 @@ public class Parser {
         }
 
         return expr;
+    }
+
+    private Expr logicOr() {
+        return leftAssocLogical(
+                new TokenType[]{ TokenType.OR },
+                this::logicAnd
+        );
+    }
+
+    private Expr logicAnd() {
+        return leftAssocLogical(
+                new TokenType[]{ TokenType.AND },
+                this::equality
+        );
     }
 
     private Expr equality() {
@@ -184,6 +214,18 @@ public class Parser {
         }
 
         throw error(peek(), "Expected an expression.");
+    }
+
+    private Expr leftAssocLogical(TokenType[] types, Supplier<Expr> operand) {
+        var expr = operand.get();
+
+        while (match(types)) {
+            final var operator = previous();
+            final var right = operand.get();
+            expr = new Expr.Logical(expr, operator, right);
+        }
+
+        return expr;
     }
 
     private Expr leftAssocBinary(TokenType[] types, Supplier<Expr> operand) {

@@ -1,0 +1,44 @@
+var a = "a";
+var b = "b";
+
+var x = 1;
+print x;
+
+if (x == 1)
+    print a;
+else
+    print b;
+
+if (x > 0)
+    print "hi";
+
+if (x < 100)
+    if (x == 1)
+        print "ok";
+    else
+        print "no";
+else
+    print "nah";
+
+print "";
+x = 101;
+print x;
+
+if (x < 100)
+    if (x == 1)
+        print "ok";
+    else
+        print "no";
+else
+    print "nah";
+
+print "";
+
+print x and  true;
+print x and false;
+print x  or  true;
+print x  or false;
+print true  and x;
+print false and x;
+print true   or x;
+print false  or x;

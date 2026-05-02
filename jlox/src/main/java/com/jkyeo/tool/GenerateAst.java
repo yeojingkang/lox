@@ -31,6 +31,11 @@ public class GenerateAst {
                 Map.entry("Assign", List.of(
                         "Token name",
                         "Expr value"
+                )),
+                Map.entry("Logical", List.of(
+                        "Expr left",
+                        "Token operator",
+                        "Expr right"
                 ))
         ));
 
@@ -41,7 +46,12 @@ public class GenerateAst {
                         "Token name",
                         "Expr init"
                 )),
-                Map.entry("Block", List.of("List<Stmt> statements"))
+                Map.entry("Block", List.of("List<Stmt> statements")),
+                Map.entry("If", List.of(
+                        "Expr condition",
+                        "Stmt thenBranch",
+                        "Stmt elseBranch"
+                ))
         ));
     }
 

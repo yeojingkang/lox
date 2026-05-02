@@ -20,6 +20,15 @@ public class Interpreter implements
     // Statements
 
     @Override
+    public Void visitIfStmt(Stmt.If stmt) {
+        if (isTruthy(evaluate(stmt.condition)))
+            execute(stmt.thenBranch);
+        else if (stmt.elseBranch != null)
+            execute(stmt.elseBranch);
+        return null;
+    }
+
+    @Override
     public Void visitVarStmt(Stmt.Var stmt) {
         env.define(
                 stmt.name.lexeme,
@@ -47,6 +56,19 @@ public class Interpreter implements
     }
 
     // Expressions
+
+    @Override
+    public Object visitLogicalExpr(Expr.Logical expr) {
+        final var left = evaluate(expr.left);
+
+        if (expr.operator.type == TokenType.OR) {
+            if (isTruthy(left)) return left;
+        } else {
+            if (!isTruthy(left)) return left;
+        }
+
+        return evaluate(expr.right);
+    }
 
     @Override
     public Object visitAssignExpr(Expr.Assign expr) {
