@@ -1,0 +1,13 @@
+fun foo(x) {
+    var i = 0;
+    fun bar(x) {
+        print x + 2;
+    }
+    bar(i);
+    print x;
+}
+
+print foo;
+foo(1);
+foo("dd");
+foo();

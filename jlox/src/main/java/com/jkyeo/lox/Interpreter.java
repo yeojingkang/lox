@@ -36,6 +36,12 @@ public class Interpreter implements
     // Statements
 
     @Override
+    public Void visitFunctionStmt(Stmt.Function stmt) {
+        env.define(stmt.name.lexeme, new LoxFunction(stmt, env));
+        return null;
+    }
+
+    @Override
     public Void visitWhileStmt(Stmt.While stmt) {
         while (isTruthy(evaluate(stmt.condition)))
             execute(stmt.body);
@@ -206,7 +212,7 @@ public class Interpreter implements
     }
 
     // TODO: Change visit pattern to take an Environment context to avoid mutating env
-    private void executeBlock(List<Stmt> statements, Environment env) {
+    void executeBlock(List<Stmt> statements, Environment env) {
         final var prevEnv = this.env;
         try {
             this.env = env;

@@ -60,6 +60,11 @@ public class GenerateAst {
             Map.entry("While", List.of(
                 "Expr condition",
                 "Stmt body"
+            )),
+            Map.entry("Function", List.of(
+                "Token name",
+                "List<Token> params",
+                "List<Stmt> body"
             ))
         ));
     }

@@ -9,8 +9,13 @@ import java.util.function.Supplier;
 /*
 program        → declaration* EOF ;
 
-declaration    → varDecl
+declaration    → funDecl
+               | varDecl
                | statement ;
+
+funDecl        → "fun" function ;
+function       → IDENTIFIER "(" parameters? ")" block ;
+parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
 
 varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 
@@ -74,11 +79,32 @@ public class Parser {
     private Stmt declaration() {
         try {
             if (match(TokenType.VAR)) return varDeclaration();
+            if (match(TokenType.FUN)) return function("function");
             return statement();
         } catch (ParseError err) {
             synchronize();
             return null;
         }
+    }
+
+    private Stmt function(String kind) {
+        final var name = consume(TokenType.IDENTIFIER, "Expected " + kind + " name.");
+
+        consume(TokenType.LEFT_PAREN, "Expected '(' after " + kind + " name.");
+        final var parameters = new ArrayList<Token>();
+        if (!check(TokenType.RIGHT_PAREN)) {
+            do {
+                if (parameters.size() >= 255)
+                    error(peek(), "Can't have more than 255 parameters.");
+                parameters.add(consume(TokenType.IDENTIFIER, "Expected parameter name."));
+            } while (match(TokenType.COMMA));
+        }
+        consume(TokenType.RIGHT_PAREN, "Expected ')' after parameters");
+
+        consume(TokenType.LEFT_BRACE, "Expected '{' before " + kind + " body.");
+        final var body = block();
+
+        return new Stmt.Function(name, parameters, body);
     }
 
     private Stmt varDeclaration() {
