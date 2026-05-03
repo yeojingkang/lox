@@ -5,7 +5,23 @@ import java.util.List;
 public class Interpreter implements
     Expr.Visitor<Object>,
     Stmt.Visitor<Void> {
-    private Environment env = new Environment();
+    final Environment globals = new Environment();
+    private Environment env = globals;
+
+    Interpreter() {
+        globals.define("clock", new LoxCallable() {
+            @Override
+            public int arity() { return 0; }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments) {
+                return (double)System.currentTimeMillis() / 1000.0;
+            }
+
+            @Override
+            public String toString() { return "<native fn>"; }
+        });
+    }
 
     void interpret(List<Stmt> statements) {
         try {
@@ -63,6 +79,19 @@ public class Interpreter implements
     }
 
     // Expressions
+
+    @Override
+    public Object visitCallExpr(Expr.Call expr) {
+        final var callee = evaluate(expr.callee);
+        final var arguments = expr.arguments.stream().map(this::evaluate);
+
+        if (!(callee instanceof LoxCallable fn))
+            throw new RuntimeError(expr.paren, "Can only call functions and classes");
+
+        if (fn.arity() != expr.arguments.size())
+            throw new RuntimeError(expr.paren, "Expected " + fn.arity() + " arguments but got " + expr.arguments.size() + ".");
+        return fn.call(this, arguments.toList());
+    }
 
     @Override
     public Object visitLogicalExpr(Expr.Logical expr) {

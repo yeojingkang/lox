@@ -6,43 +6,48 @@ import java.util.List;
 import java.util.function.Supplier;
 
 // Lox's grammar:
-// program        → declaration* EOF ;
+/*
+program        → declaration* EOF ;
 
-// declaration    → varDecl
-//                | statement ;
+declaration    → varDecl
+               | statement ;
 
-// varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
+varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 
-// statement      → exprStmt
-//                | forStmt
-//                | ifStmt
-//                | printStmt
-//                | whileStmt
-//                | block ;
+statement      → exprStmt
+               | forStmt
+               | ifStmt
+               | printStmt
+               | whileStmt
+               | block ;
 
-// forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
-//                  expression? ";"
-//                  expression? "   )" statement ;
-// whileStmt      → "while" "(" expression ")" statement ;
-// ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
-// exprStmt       → expression ";" ;
-// printStmt      → "print" expression ";" ;
-// block          → "{" declaration* "}" ;
+forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
+                 expression? ";"
+                 expression? "   )" statement ;
+whileStmt      → "while" "(" expression ")" statement ;
+ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
+exprStmt       → expression ";" ;
+printStmt      → "print" expression ";" ;
+block          → "{" declaration* "}" ;
 
-/***************** Expressions *****************/
-// expression     → assignment ;
+***************** Expressions *****************
+expression     → assignment ;
 
-// assignment     → IDENTIFIER "=" assignment
-//                | logic_or ;
-// logic_or       → logic_and ( "or" logic_and )* ;
-// logic_and      → equality ( "and" equality )* ;
-// equality       → comparison ( ( "!=" | "==" ) comparison )* ;
-// comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
-// term           → factor ( ( "-" | "+" ) factor )* ;
-// factor         → unary ( ( "/" | "*" ) unary )* ;
-// unary          → ( "!" | "-" ) unary | primary ;
-// primary        → NUMBER | STRING | "true" | "false" | "nil"
-//                | "(" expression ")" | IDENTIFIER ;
+assignment     → IDENTIFIER "=" assignment
+               | logic_or ;
+logic_or       → logic_and ( "or" logic_and )* ;
+logic_and      → equality ( "and" equality )* ;
+equality       → comparison ( ( "!=" | "==" ) comparison )* ;
+comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+term           → factor ( ( "-" | "+" ) factor )* ;
+factor         → unary ( ( "/" | "*" ) unary )* ;
+unary          → ( "!" | "-" ) unary | call ;
+call           → primary ( "(" arguments? ")" )* ;
+primary        → NUMBER | STRING | "true" | "false" | "nil"
+               | "(" expression ")" | IDENTIFIER ;
+
+arguments      → expression ( "," expression )* ;
+*/
 
 
 
@@ -246,7 +251,35 @@ public class Parser {
             return new Expr.Unary(operator, right);
         }
 
-        return primary();
+        return call();
+    }
+
+    private Expr call() {
+        var expr = primary();
+
+        while (true) {
+            if (match(TokenType.LEFT_PAREN)) {
+                expr = finishCall(expr);
+            } else {
+                break;
+            }
+        }
+
+        return expr;
+    }
+
+    private Expr finishCall(Expr callee) {
+        final var arguments = new ArrayList<Expr>();
+        if (!check(TokenType.RIGHT_PAREN)) {
+            do {
+                if (arguments.size() >= 255)
+                    error(peek(), "Can't have more than 255 arguments.");
+                arguments.add(expression());
+            } while (match(TokenType.COMMA));
+        }
+        final var paren = consume(TokenType.RIGHT_PAREN, "Expected ')' after arguments");
+
+        return new Expr.Call(callee, paren, arguments);
     }
 
     private Expr primary() {
