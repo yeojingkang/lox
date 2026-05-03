@@ -21,6 +21,7 @@ enum TokenType {
     TRUE, FALSE, NIL,
     CLASS, THIS, SUPER,
     VAR, FUN, PRINT,
+    BREAK,
 
     EOF
 }

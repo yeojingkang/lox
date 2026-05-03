@@ -5,6 +5,9 @@ import java.util.List;
 public class Interpreter implements
     Expr.Visitor<Object>,
     Stmt.Visitor<Void> {
+    // TODO: Break should be a regular Exception instead
+    private static class Break extends RuntimeException {}
+
     private Environment env = new Environment();
 
     void interpret(List<Stmt> statements) {
@@ -20,9 +23,17 @@ public class Interpreter implements
     // Statements
 
     @Override
+    public Void visitBreakStmt(Stmt.Break stmt) {
+        throw new Break();
+    }
+
+    @Override
     public Void visitWhileStmt(Stmt.While stmt) {
-        while (isTruthy(evaluate(stmt.condition)))
-            execute(stmt.body);
+        try {
+            while (isTruthy(evaluate(stmt.condition)))
+                execute(stmt.body);
+        } catch (
+            Break ignored) {}
         return null;
     }
 

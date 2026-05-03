@@ -4,43 +4,16 @@ import java.util.List;
 
 abstract class Stmt{
   interface Visitor<R> {
-    R visitBlockStmt(Block stmt);
-    R visitVarStmt(Var stmt);
     R visitWhileStmt(While stmt);
     R visitIfStmt(If stmt);
-    R visitExpressionStmt(Expression stmt);
     R visitPrintStmt(Print stmt);
+    R visitExpressionStmt(Expression stmt);
+    R visitVarStmt(Var stmt);
+    R visitBreakStmt(Break stmt);
+    R visitBlockStmt(Block stmt);
   }
 
   abstract <R> R accept(Visitor<R> visitor);
-
-  static class Block extends Stmt {
-    Block(List<Stmt> statements) {
-      this.statements = statements;
-    }
-
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitBlockStmt(this);
-    }
-
-    final List<Stmt> statements;
-  }
-
-  static class Var extends Stmt {
-    Var(Token name, Expr init) {
-      this.name = name;
-      this.init = init;
-    }
-
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitVarStmt(this);
-    }
-
-    final Token name;
-    final Expr init;
-  }
 
   static class While extends Stmt {
     While(Expr condition, Stmt body) {
@@ -74,6 +47,19 @@ abstract class Stmt{
     final Stmt elseBranch;
   }
 
+  static class Print extends Stmt {
+    Print(Expr expression) {
+      this.expression = expression;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitPrintStmt(this);
+    }
+
+    final Expr expression;
+  }
+
   static class Expression extends Stmt {
     Expression(Expr expression) {
       this.expression = expression;
@@ -87,16 +73,42 @@ abstract class Stmt{
     final Expr expression;
   }
 
-  static class Print extends Stmt {
-    Print(Expr expression) {
-      this.expression = expression;
+  static class Var extends Stmt {
+    Var(Token name, Expr init) {
+      this.name = name;
+      this.init = init;
     }
 
     @Override
     <R> R accept(Visitor<R> visitor) {
-      return visitor.visitPrintStmt(this);
+      return visitor.visitVarStmt(this);
     }
 
-    final Expr expression;
+    final Token name;
+    final Expr init;
+  }
+
+  static class Break extends Stmt {
+    Break() {
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitBreakStmt(this);
+    }
+
+  }
+
+  static class Block extends Stmt {
+    Block(List<Stmt> statements) {
+      this.statements = statements;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitBlockStmt(this);
+    }
+
+    final List<Stmt> statements;
   }
 }

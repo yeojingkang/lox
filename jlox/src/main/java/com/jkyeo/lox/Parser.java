@@ -6,44 +6,47 @@ import java.util.List;
 import java.util.function.Supplier;
 
 // Lox's grammar:
-// program        → declaration* EOF ;
+/*
+program        → declaration* EOF ;
 
-// declaration    → varDecl
-//                | statement ;
+declaration    → varDecl
+               | statement ;
 
-// varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
+varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 
-// statement      → exprStmt
-//                | forStmt
-//                | ifStmt
-//                | printStmt
-//                | whileStmt
-//                | block ;
+statement      → exprStmt
+               | forStmt
+               | ifStmt
+               | printStmt
+               | whileStmt
+               | breakStmt
+               | block ;
 
-// forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
-//                  expression? ";"
-//                  expression? "   )" statement ;
-// whileStmt      → "while" "(" expression ")" statement ;
-// ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
-// exprStmt       → expression ";" ;
-// printStmt      → "print" expression ";" ;
-// block          → "{" declaration* "}" ;
+breakStmt      → "break" ";" ;
+forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
+                 expression? ";"
+                 expression? ")" statement ;
+whileStmt      → "while" "(" expression ")" statement ;
+ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
+exprStmt       → expression ";" ;
+printStmt      → "print" expression ";" ;
+block          → "{" declaration* "}" ;
 
-/***************** Expressions *****************/
-// expression     → assignment ;
+***************** Expressions *****************
+expression     → assignment ;
 
-// assignment     → IDENTIFIER "=" assignment
-//                | logic_or ;
-// logic_or       → logic_and ( "or" logic_and )* ;
-// logic_and      → equality ( "and" equality )* ;
-// equality       → comparison ( ( "!=" | "==" ) comparison )* ;
-// comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
-// term           → factor ( ( "-" | "+" ) factor )* ;
-// factor         → unary ( ( "/" | "*" ) unary )* ;
-// unary          → ( "!" | "-" ) unary | primary ;
-// primary        → NUMBER | STRING | "true" | "false" | "nil"
-//                | "(" expression ")" | IDENTIFIER ;
-
+assignment     → IDENTIFIER "=" assignment
+               | logic_or ;
+logic_or       → logic_and ( "or" logic_and )* ;
+logic_and      → equality ( "and" equality )* ;
+equality       → comparison ( ( "!=" | "==" ) comparison )* ;
+comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+term           → factor ( ( "-" | "+" ) factor )* ;
+factor         → unary ( ( "/" | "*" ) unary )* ;
+unary          → ( "!" | "-" ) unary | primary ;
+primary        → NUMBER | STRING | "true" | "false" | "nil"
+               | "(" expression ")" | IDENTIFIER ;
+*/
 
 
 // Recursive Descent parser
@@ -52,6 +55,8 @@ public class Parser {
 
     private final List<Token> tokens;
     private int current = 0;
+
+    private int breakableLevel = 0;
 
     Parser(List<Token> tokens) {
         this.tokens = tokens;
@@ -89,6 +94,7 @@ public class Parser {
     }
 
     private Stmt statement() {
+        if (match(TokenType.BREAK)) return breakStatement();
         if (match(TokenType.FOR)) return forStatement();
         if (match(TokenType.WHILE)) return whileStatement();
         if (match(TokenType.IF)) return ifStatement();
@@ -96,6 +102,14 @@ public class Parser {
         if (match(TokenType.LEFT_BRACE)) return new Stmt.Block(block());
 
         return exprStatement();
+    }
+
+    private Stmt breakStatement() {
+        if (breakableLevel == 0)
+            throw error(previous(), "Unexpected break statement outside loops.");
+
+        consume(TokenType.SEMICOLON, "Expected ';' after break.");
+        return new Stmt.Break();
     }
 
     private Stmt forStatement() {
@@ -109,7 +123,7 @@ public class Parser {
         final var increment = !check(TokenType.RIGHT_PAREN) ? expression() : null;
         consume(TokenType.RIGHT_PAREN, "Expected ')' after for clauses.");
 
-        var body = statement();
+        var body = breakableStatement();
 
         // Parsed as:
         /*
@@ -137,9 +151,16 @@ public class Parser {
         consume(TokenType.LEFT_PAREN, "Expected '(' after while.");
         final var condition = expression();
         consume(TokenType.RIGHT_PAREN, "Expected ')' after while condition.");
-        final var body = statement();
+        final var body = breakableStatement();
 
         return new Stmt.While(condition, body);
+    }
+
+    private Stmt breakableStatement() {
+        ++breakableLevel;
+        final var body = statement();
+        --breakableLevel;
+        return body;
     }
 
     private Stmt ifStatement() {

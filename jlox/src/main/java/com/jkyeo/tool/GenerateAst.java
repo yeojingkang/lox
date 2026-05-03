@@ -17,25 +17,25 @@ public class GenerateAst {
 
         defineAst(outputDir, "Expr", Map.ofEntries(
                 Map.entry("Binary", List.of(
-                        "Expr left",
-                        "Token operator",
-                        "Expr right"
+                    "Expr left",
+                    "Token operator",
+                    "Expr right"
                 )),
                 Map.entry("Grouping", List.of("Expr expression")),
                 Map.entry("Literal", List.of("Object value")),
                 Map.entry("Unary", List.of(
-                        "Token operator",
-                        "Expr right"
+                    "Token operator",
+                    "Expr right"
                 )),
                 Map.entry("Variable", List.of("Token name")),
                 Map.entry("Assign", List.of(
-                        "Token name",
-                        "Expr value"
+                    "Token name",
+                    "Expr value"
                 )),
                 Map.entry("Logical", List.of(
-                        "Expr left",
-                        "Token operator",
-                        "Expr right"
+                    "Expr left",
+                    "Token operator",
+                    "Expr right"
                 ))
         ));
 
@@ -43,19 +43,20 @@ public class GenerateAst {
                 Map.entry("Expression", List.of("Expr expression")),
                 Map.entry("Print", List.of("Expr expression")),
                 Map.entry("Var", List.of(
-                        "Token name",
-                        "Expr init"
+                    "Token name",
+                    "Expr init"
                 )),
                 Map.entry("Block", List.of("List<Stmt> statements")),
                 Map.entry("If", List.of(
-                        "Expr condition",
-                        "Stmt thenBranch",
-                        "Stmt elseBranch"
+                    "Expr condition",
+                    "Stmt thenBranch",
+                    "Stmt elseBranch"
                 )),
                 Map.entry("While", List.of(
-                        "Expr condition",
-                        "Stmt body"
-                ))
+                    "Expr condition",
+                    "Stmt body"
+                )),
+                Map.entry("Break", List.of())
         ));
     }
 
