@@ -51,6 +51,10 @@ public class GenerateAst {
                         "Expr condition",
                         "Stmt thenBranch",
                         "Stmt elseBranch"
+                )),
+                Map.entry("While", List.of(
+                        "Expr condition",
+                        "Stmt body"
                 ))
         ));
     }

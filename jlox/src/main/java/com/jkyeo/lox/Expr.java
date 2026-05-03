@@ -4,42 +4,16 @@ import java.util.List;
 
 abstract class Expr{
   interface Visitor<R> {
-    R visitVariableExpr(Variable expr);
-    R visitGroupingExpr(Grouping expr);
     R visitUnaryExpr(Unary expr);
     R visitLogicalExpr(Logical expr);
     R visitLiteralExpr(Literal expr);
     R visitAssignExpr(Assign expr);
     R visitBinaryExpr(Binary expr);
+    R visitVariableExpr(Variable expr);
+    R visitGroupingExpr(Grouping expr);
   }
 
   abstract <R> R accept(Visitor<R> visitor);
-
-  static class Variable extends Expr {
-    Variable(Token name) {
-      this.name = name;
-    }
-
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitVariableExpr(this);
-    }
-
-    final Token name;
-  }
-
-  static class Grouping extends Expr {
-    Grouping(Expr expression) {
-      this.expression = expression;
-    }
-
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitGroupingExpr(this);
-    }
-
-    final Expr expression;
-  }
 
   static class Unary extends Expr {
     Unary(Token operator, Expr right) {
@@ -116,5 +90,31 @@ abstract class Expr{
     final Expr left;
     final Token operator;
     final Expr right;
+  }
+
+  static class Variable extends Expr {
+    Variable(Token name) {
+      this.name = name;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitVariableExpr(this);
+    }
+
+    final Token name;
+  }
+
+  static class Grouping extends Expr {
+    Grouping(Expr expression) {
+      this.expression = expression;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitGroupingExpr(this);
+    }
+
+    final Expr expression;
   }
 }

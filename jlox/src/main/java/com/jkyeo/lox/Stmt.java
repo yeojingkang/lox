@@ -4,27 +4,15 @@ import java.util.List;
 
 abstract class Stmt{
   interface Visitor<R> {
-    R visitPrintStmt(Print stmt);
     R visitBlockStmt(Block stmt);
-    R visitExpressionStmt(Expression stmt);
     R visitVarStmt(Var stmt);
+    R visitWhileStmt(While stmt);
     R visitIfStmt(If stmt);
+    R visitExpressionStmt(Expression stmt);
+    R visitPrintStmt(Print stmt);
   }
 
   abstract <R> R accept(Visitor<R> visitor);
-
-  static class Print extends Stmt {
-    Print(Expr expression) {
-      this.expression = expression;
-    }
-
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitPrintStmt(this);
-    }
-
-    final Expr expression;
-  }
 
   static class Block extends Stmt {
     Block(List<Stmt> statements) {
@@ -37,19 +25,6 @@ abstract class Stmt{
     }
 
     final List<Stmt> statements;
-  }
-
-  static class Expression extends Stmt {
-    Expression(Expr expression) {
-      this.expression = expression;
-    }
-
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitExpressionStmt(this);
-    }
-
-    final Expr expression;
   }
 
   static class Var extends Stmt {
@@ -67,6 +42,21 @@ abstract class Stmt{
     final Expr init;
   }
 
+  static class While extends Stmt {
+    While(Expr condition, Stmt body) {
+      this.condition = condition;
+      this.body = body;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitWhileStmt(this);
+    }
+
+    final Expr condition;
+    final Stmt body;
+  }
+
   static class If extends Stmt {
     If(Expr condition, Stmt thenBranch, Stmt elseBranch) {
       this.condition = condition;
@@ -82,5 +72,31 @@ abstract class Stmt{
     final Expr condition;
     final Stmt thenBranch;
     final Stmt elseBranch;
+  }
+
+  static class Expression extends Stmt {
+    Expression(Expr expression) {
+      this.expression = expression;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitExpressionStmt(this);
+    }
+
+    final Expr expression;
+  }
+
+  static class Print extends Stmt {
+    Print(Expr expression) {
+      this.expression = expression;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitPrintStmt(this);
+    }
+
+    final Expr expression;
   }
 }

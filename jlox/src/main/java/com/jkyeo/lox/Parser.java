@@ -1,6 +1,7 @@
 package com.jkyeo.lox;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -13,10 +14,16 @@ import java.util.function.Supplier;
 // varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 
 // statement      → exprStmt
+//                | forStmt
 //                | ifStmt
 //                | printStmt
+//                | whileStmt
 //                | block ;
 
+// forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
+//                  expression? ";"
+//                  expression? "   )" statement ;
+// whileStmt      → "while" "(" expression ")" statement ;
 // ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
 // exprStmt       → expression ";" ;
 // printStmt      → "print" expression ";" ;
@@ -73,8 +80,8 @@ public class Parser {
         final var name = consume(TokenType.IDENTIFIER, "Expected variable name.");
 
         final var init = match(TokenType.EQ)
-                ? expression()
-                : null;
+            ? expression()
+            : null;
 
         consume(TokenType.SEMICOLON, "Expected ';' after variable declaration.");
 
@@ -82,11 +89,57 @@ public class Parser {
     }
 
     private Stmt statement() {
+        if (match(TokenType.FOR)) return forStatement();
+        if (match(TokenType.WHILE)) return whileStatement();
         if (match(TokenType.IF)) return ifStatement();
         if (match(TokenType.PRINT)) return printStatement();
         if (match(TokenType.LEFT_BRACE)) return new Stmt.Block(block());
 
         return exprStatement();
+    }
+
+    private Stmt forStatement() {
+        consume(TokenType.LEFT_PAREN, "Expected '(' after for.");
+        final var initializer =
+            match(TokenType.VAR) ? varDeclaration() :
+            match(TokenType.SEMICOLON) ? null :
+            exprStatement();
+        final var condition = !check(TokenType.SEMICOLON) ? expression() : null;
+        consume(TokenType.SEMICOLON, "Expected ';' after loop condition");
+        final var increment = !check(TokenType.RIGHT_PAREN) ? expression() : null;
+        consume(TokenType.RIGHT_PAREN, "Expected ')' after for clauses.");
+
+        var body = statement();
+
+        // Parsed as:
+        /*
+         * {
+         *      init;
+         *      while (cond) {
+         *          body;
+         *          incr;
+         *      }
+         * }
+         */
+
+        if (increment != null)
+            body = new Stmt.Block(Arrays.asList(body, new Stmt.Expression(increment)));
+        body = new Stmt.While(
+            condition == null ? new Expr.Literal(true) : condition,
+            body);
+        if (initializer != null)
+            body = new Stmt.Block(Arrays.asList(initializer, body));
+
+        return body;
+    }
+
+    private Stmt whileStatement() {
+        consume(TokenType.LEFT_PAREN, "Expected '(' after while.");
+        final var condition = expression();
+        consume(TokenType.RIGHT_PAREN, "Expected ')' after while condition.");
+        final var body = statement();
+
+        return new Stmt.While(condition, body);
     }
 
     private Stmt ifStatement() {
@@ -146,43 +199,43 @@ public class Parser {
 
     private Expr logicOr() {
         return leftAssocLogical(
-                new TokenType[]{ TokenType.OR },
-                this::logicAnd
+            new TokenType[]{ TokenType.OR },
+            this::logicAnd
         );
     }
 
     private Expr logicAnd() {
         return leftAssocLogical(
-                new TokenType[]{ TokenType.AND },
-                this::equality
+            new TokenType[]{ TokenType.AND },
+            this::equality
         );
     }
 
     private Expr equality() {
         return leftAssocBinary(
-                new TokenType[]{ TokenType.BANG_EQ, TokenType.EQ_EQ },
-                this::comparison
+            new TokenType[]{ TokenType.BANG_EQ, TokenType.EQ_EQ },
+            this::comparison
         );
     }
 
     private Expr comparison() {
         return leftAssocBinary(
-                new TokenType[]{ TokenType.GREATER, TokenType.GREATER_EQ, TokenType.LESS, TokenType.LESS_EQ },
-                this::term
+            new TokenType[]{ TokenType.GREATER, TokenType.GREATER_EQ, TokenType.LESS, TokenType.LESS_EQ },
+            this::term
         );
     }
 
     private Expr term() {
         return leftAssocBinary(
-                new TokenType[]{ TokenType.MINUS, TokenType.PLUS },
-                this::factor
+            new TokenType[]{ TokenType.MINUS, TokenType.PLUS },
+            this::factor
         );
     }
 
     private Expr factor() {
         return leftAssocBinary(
-                new TokenType[]{ TokenType.STAR, TokenType.SLASH },
-                this::unary
+            new TokenType[]{ TokenType.STAR, TokenType.SLASH },
+            this::unary
         );
     }
 
