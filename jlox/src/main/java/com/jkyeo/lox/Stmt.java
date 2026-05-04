@@ -4,73 +4,31 @@ import java.util.List;
 
 abstract class Stmt{
   interface Visitor<R> {
-    R visitFunctionStmt(Function stmt);
-    R visitVarStmt(Var stmt);
-    R visitExpressionStmt(Expression stmt);
-    R visitPrintStmt(Print stmt);
+    R visitReturnStmt(Return stmt);
     R visitIfStmt(If stmt);
-    R visitWhileStmt(While stmt);
     R visitBlockStmt(Block stmt);
+    R visitPrintStmt(Print stmt);
+    R visitFunctionStmt(Function stmt);
+    R visitExpressionStmt(Expression stmt);
+    R visitVarStmt(Var stmt);
+    R visitWhileStmt(While stmt);
   }
 
   abstract <R> R accept(Visitor<R> visitor);
 
-  static class Function extends Stmt {
-    Function(Token name, List<Token> params, List<Stmt> body) {
-      this.name = name;
-      this.params = params;
-      this.body = body;
+  static class Return extends Stmt {
+    Return(Token keyword, Expr value) {
+      this.keyword = keyword;
+      this.value = value;
     }
 
     @Override
     <R> R accept(Visitor<R> visitor) {
-      return visitor.visitFunctionStmt(this);
+      return visitor.visitReturnStmt(this);
     }
 
-    final Token name;
-    final List<Token> params;
-    final List<Stmt> body;
-  }
-
-  static class Var extends Stmt {
-    Var(Token name, Expr init) {
-      this.name = name;
-      this.init = init;
-    }
-
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitVarStmt(this);
-    }
-
-    final Token name;
-    final Expr init;
-  }
-
-  static class Expression extends Stmt {
-    Expression(Expr expression) {
-      this.expression = expression;
-    }
-
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitExpressionStmt(this);
-    }
-
-    final Expr expression;
-  }
-
-  static class Print extends Stmt {
-    Print(Expr expression) {
-      this.expression = expression;
-    }
-
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitPrintStmt(this);
-    }
-
-    final Expr expression;
+    final Token keyword;
+    final Expr value;
   }
 
   static class If extends Stmt {
@@ -90,6 +48,77 @@ abstract class Stmt{
     final Stmt elseBranch;
   }
 
+  static class Block extends Stmt {
+    Block(List<Stmt> statements) {
+      this.statements = statements;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitBlockStmt(this);
+    }
+
+    final List<Stmt> statements;
+  }
+
+  static class Print extends Stmt {
+    Print(Expr expression) {
+      this.expression = expression;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitPrintStmt(this);
+    }
+
+    final Expr expression;
+  }
+
+  static class Function extends Stmt {
+    Function(Token name, List<Token> params, List<Stmt> body) {
+      this.name = name;
+      this.params = params;
+      this.body = body;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitFunctionStmt(this);
+    }
+
+    final Token name;
+    final List<Token> params;
+    final List<Stmt> body;
+  }
+
+  static class Expression extends Stmt {
+    Expression(Expr expression) {
+      this.expression = expression;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitExpressionStmt(this);
+    }
+
+    final Expr expression;
+  }
+
+  static class Var extends Stmt {
+    Var(Token name, Expr init) {
+      this.name = name;
+      this.init = init;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitVarStmt(this);
+    }
+
+    final Token name;
+    final Expr init;
+  }
+
   static class While extends Stmt {
     While(Expr condition, Stmt body) {
       this.condition = condition;
@@ -103,18 +132,5 @@ abstract class Stmt{
 
     final Expr condition;
     final Stmt body;
-  }
-
-  static class Block extends Stmt {
-    Block(List<Stmt> statements) {
-      this.statements = statements;
-    }
-
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitBlockStmt(this);
-    }
-
-    final List<Stmt> statements;
   }
 }

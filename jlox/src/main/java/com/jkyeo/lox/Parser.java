@@ -23,9 +23,11 @@ statement      → exprStmt
                | forStmt
                | ifStmt
                | printStmt
+               | returnStmt
                | whileStmt
                | block ;
 
+returnStmt     → "return" expression? ";" ;
 forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
                  expression? ";"
                  expression? "   )" statement ;
@@ -121,12 +123,20 @@ public class Parser {
 
     private Stmt statement() {
         if (match(TokenType.FOR)) return forStatement();
-        if (match(TokenType.WHILE)) return whileStatement();
         if (match(TokenType.IF)) return ifStatement();
         if (match(TokenType.PRINT)) return printStatement();
+        if (match(TokenType.RETURN)) return returnStatement();
+        if (match(TokenType.WHILE)) return whileStatement();
         if (match(TokenType.LEFT_BRACE)) return new Stmt.Block(block());
 
         return exprStatement();
+    }
+
+    private Stmt returnStatement() {
+        final var keyword = previous();
+        final var expr = !check(TokenType.SEMICOLON) ? expression() : null;
+        consume(TokenType.SEMICOLON, "Expected ';' after return value.");
+        return new Stmt.Return(keyword, expr);
     }
 
     private Stmt forStatement() {

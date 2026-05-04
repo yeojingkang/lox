@@ -65,6 +65,10 @@ public class GenerateAst {
                 "Token name",
                 "List<Token> params",
                 "List<Stmt> body"
+            )),
+            Map.entry("Return", List.of(
+                "Token keyword",
+                "Expr value"
             ))
         ));
     }

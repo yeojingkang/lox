@@ -1,13 +1,51 @@
 fun foo(x) {
     var i = 0;
-    fun bar(x) {
-        print x + 2;
+    fun bar() {
+        print i + 2;
     }
-    bar(i);
+    bar();
     print x;
 }
 
 print foo;
 foo(1);
 foo("dd");
-foo();
+//foo(); // Expect 1 arg
+
+// ------ Fibonacci ------
+
+fun execFib(fib, title) {
+    print title;
+
+    var start = clock();
+    for (var i = 0; i < 20; i = i + 1) {
+      print fib(i);
+    }
+    var end = clock();
+    print "Time taken:";
+    print end - start;
+}
+
+print "";
+
+fun fib(n) {
+  if (n <= 1) return n;
+  return fib(n - 2) + fib(n - 1);
+}
+execFib(fib, "Fibonacci recursive:");
+
+print "";
+
+fun fib(n) {
+    if (n <= 1) return n;
+    var a = 0;
+    var b = 1;
+    while (n > 1) {
+        var tmp = b;
+        b = b + a;
+        a = tmp;
+        n = n - 1;
+    }
+    return b;
+}
+execFib(fib, "Fibonacci iterative:");
