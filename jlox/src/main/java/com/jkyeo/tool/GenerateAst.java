@@ -41,6 +41,10 @@ public class GenerateAst {
                 "Expr callee",
                 "Token paren",
                 "List<Expr> arguments"
+            )),
+            Map.entry("Lambda", List.of(
+                "List<Token> params",
+                "List<Stmt> body"
             ))
         ));
 
@@ -63,8 +67,7 @@ public class GenerateAst {
             )),
             Map.entry("Function", List.of(
                 "Token name",
-                "List<Token> params",
-                "List<Stmt> body"
+                "Expr.Lambda definition"
             )),
             Map.entry("Return", List.of(
                 "Token keyword",

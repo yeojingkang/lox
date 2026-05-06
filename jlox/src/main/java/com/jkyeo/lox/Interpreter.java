@@ -43,7 +43,7 @@ public class Interpreter implements
 
     @Override
     public Void visitFunctionStmt(Stmt.Function stmt) {
-        env.define(stmt.name.lexeme, new LoxFunction(stmt, env));
+        env.define(stmt.name.lexeme, new LoxFunction(stmt.name.lexeme, stmt.definition, env));
         return null;
     }
 
@@ -91,6 +91,11 @@ public class Interpreter implements
     }
 
     // Expressions
+
+    @Override
+    public Object visitLambdaExpr(Expr.Lambda expr) {
+        return new LoxFunction(null, expr, env);
+    }
 
     @Override
     public Object visitCallExpr(Expr.Call expr) {
