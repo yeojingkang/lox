@@ -55,6 +55,11 @@ public class Lox {
 
         if (hadError) return;
 
+        final var resolver = new Resolver(interpreter);
+        resolver.resolve(statements);
+
+        if (hadError) return;
+
         interpreter.interpret(statements);
     }
 

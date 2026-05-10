@@ -1,12 +1,15 @@
 package com.jkyeo.lox;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Interpreter implements
     Expr.Visitor<Object>,
     Stmt.Visitor<Void> {
     final Environment globals = new Environment();
     private Environment env = globals;
+    private final Map<Expr, Integer> locals = new HashMap<>();
 
     Interpreter() {
         globals.define("clock", new LoxCallable() {
@@ -121,13 +124,19 @@ public class Interpreter implements
     @Override
     public Object visitAssignExpr(Expr.Assign expr) {
         final var value = evaluate(expr.value);
-        this.env.assign(expr.name, value);
+
+        final var distance = locals.get(expr);
+        if (distance != null)
+            env.assignAt(distance, expr.name, value);
+        else
+            globals.assign(expr.name, value);
+
         return value;
     }
 
     @Override
     public Object visitVariableExpr(Expr.Variable expr) {
-        return env.get(expr.name);
+        return lookUpVariable(expr.name, expr);
     }
 
     @Override
@@ -257,5 +266,16 @@ public class Interpreter implements
         }
 
         return value.toString();
+    }
+
+    void resolve(Expr expr, int depth) {
+        locals.put(expr, depth);
+    }
+
+    private Object lookUpVariable(Token name, Expr expr) {
+        final var distance = locals.get(expr);
+        return distance != null
+            ? env.getAt(distance, name.lexeme)
+            : globals.get(name);
     }
 }
