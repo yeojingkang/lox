@@ -39,6 +39,14 @@ public class Interpreter implements
     // Statements
 
     @Override
+    public Void visitClassStmt(Stmt.Class stmt) {
+        env.define(stmt.name.lexeme, null);
+        final var klass = new LoxClass(stmt.name.lexeme);
+        env.assign(stmt.name, klass);
+        return null;
+    }
+
+    @Override
     public Void visitReturnStmt(Stmt.Return stmt) {
         final var value = stmt.value != null ? evaluate(stmt.value) : null;
         throw new Return(value);

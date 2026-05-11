@@ -9,11 +9,14 @@ import java.util.function.Supplier;
 /*
 program        → declaration* EOF ;
 
-declaration    → funDecl
+declaration    → classDecl
+               | funDecl
                | varDecl
                | statement ;
 
+classDecl      → "class" IDENTIFIER "{" function* "}" ;
 funDecl        → "fun" function ;
+
 function       → IDENTIFIER "(" parameters? ")" block ;
 parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
 
@@ -80,6 +83,7 @@ public class Parser {
 
     private Stmt declaration() {
         try {
+            if (match(TokenType.CLASS)) return classDeclaration();
             if (match(TokenType.VAR)) return varDeclaration();
             if (match(TokenType.FUN)) return function("function");
             return statement();
@@ -89,7 +93,21 @@ public class Parser {
         }
     }
 
-    private Stmt function(String kind) {
+    private Stmt classDeclaration() {
+        final var name = consume(TokenType.IDENTIFIER, "Expected class name.");
+
+        consume(TokenType.LEFT_BRACE, "Expected '{' before class body.");
+
+        List<Stmt.Function> methods = new ArrayList<>();
+        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd())
+            methods.add(function("method"));
+
+        consume(TokenType.RIGHT_BRACE, "Expected '}' after class body.");
+
+        return new Stmt.Class(name, methods);
+    }
+
+    private Stmt.Function function(String kind) {
         final var name = consume(TokenType.IDENTIFIER, "Expected " + kind + " name.");
 
         consume(TokenType.LEFT_PAREN, "Expected '(' after " + kind + " name.");
