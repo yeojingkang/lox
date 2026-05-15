@@ -41,6 +41,15 @@ public class GenerateAst {
                 "Expr callee",
                 "Token paren",
                 "List<Expr> arguments"
+            )),
+            Map.entry("Get", List.of(
+                "Expr object",
+                "Token name"
+            )),
+            Map.entry("Set", List.of(
+                "Expr object",
+                "Token name",
+                "Expr value"
             ))
         ));
 

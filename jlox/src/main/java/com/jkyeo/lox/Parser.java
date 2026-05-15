@@ -43,7 +43,7 @@ block          → "{" declaration* "}" ;
 ***************** Expressions *****************
 expression     → assignment ;
 
-assignment     → IDENTIFIER "=" assignment
+assignment     → ( call "." )? IDENTIFIER "=" assignment
                | logic_or ;
 logic_or       → logic_and ( "or" logic_and )* ;
 logic_and      → equality ( "and" equality )* ;
@@ -52,7 +52,7 @@ comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           → factor ( ( "-" | "+" ) factor )* ;
 factor         → unary ( ( "/" | "*" ) unary )* ;
 unary          → ( "!" | "-" ) unary | call ;
-call           → primary ( "(" arguments? ")" )* ;
+call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
 primary        → NUMBER | STRING | "true" | "false" | "nil"
                | "(" expression ")" | IDENTIFIER ;
 
@@ -246,9 +246,10 @@ public class Parser {
             final var eq = previous();
             final var value = assignment();
 
-            if (expr instanceof Expr.Variable varExpr) {
+            if (expr instanceof Expr.Variable varExpr)
                 return new Expr.Assign(varExpr.name, value);
-            }
+            else if (expr instanceof Expr.Get getExpr)
+                return new Expr.Set(getExpr.object, getExpr.name, value);
 
             error(eq, "Invalid assignment target.");
         }
@@ -314,6 +315,9 @@ public class Parser {
         while (true) {
             if (match(TokenType.LEFT_PAREN)) {
                 expr = finishCall(expr);
+            } else if (match(TokenType.DOT)) {
+                final var name = consume(TokenType.IDENTIFIER, "Expected property name after '.'.");
+                expr = new Expr.Get(expr, name);
             } else {
                 break;
             }

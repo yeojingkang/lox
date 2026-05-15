@@ -104,6 +104,27 @@ public class Interpreter implements
     // Expressions
 
     @Override
+    public Object visitSetExpr(Expr.Set expr) {
+        final var object = evaluate(expr.object);
+        if (!(object instanceof LoxInstance objInst))
+            throw new RuntimeError(expr.name, "Only instances have fields.");
+
+        final var value = evaluate(expr.value);
+        objInst.set(expr.name, value);
+        return value;
+    }
+
+    @Override
+    public Object visitGetExpr(Expr.Get expr) {
+        final var object = evaluate(expr.object);
+        if (object instanceof LoxInstance inst) {
+            return inst.get(expr.name);
+        }
+
+        throw new RuntimeError(expr.name, "Only instances have properties.");
+    }
+
+    @Override
     public Object visitCallExpr(Expr.Call expr) {
         final var callee = evaluate(expr.callee);
         final var arguments = expr.arguments.stream().map(this::evaluate);
