@@ -6,6 +6,11 @@ public class AstPrinter implements Expr.Visitor<String>{
     }
 
     @Override
+    public String visitThisExpr(Expr.This expr) {
+        return "this";
+    }
+
+    @Override
     public String visitSetExpr(Expr.Set expr) {
         return "(set " + expr.object.accept(this) + "." + expr.name.lexeme + " " + expr.value.accept(this) + ")";
     }

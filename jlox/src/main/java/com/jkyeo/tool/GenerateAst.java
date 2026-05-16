@@ -50,6 +50,9 @@ public class GenerateAst {
                 "Expr object",
                 "Token name",
                 "Expr value"
+            )),
+            Map.entry("This", List.of(
+                "Token keyword"
             ))
         ));
 

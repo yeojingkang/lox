@@ -3,6 +3,7 @@ package com.jkyeo.lox;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Interpreter implements
     Expr.Visitor<Object>,
@@ -41,7 +42,13 @@ public class Interpreter implements
     @Override
     public Void visitClassStmt(Stmt.Class stmt) {
         env.define(stmt.name.lexeme, null);
-        final var klass = new LoxClass(stmt.name.lexeme);
+
+        final var methods = stmt.methods.stream()
+            .collect(Collectors.toMap(
+                x -> x.name.lexeme,
+                x -> new LoxFunction(x, env, x.name.lexeme.equals("init"))));
+        final var klass = new LoxClass(stmt.name.lexeme, methods);
+
         env.assign(stmt.name, klass);
         return null;
     }
@@ -54,7 +61,7 @@ public class Interpreter implements
 
     @Override
     public Void visitFunctionStmt(Stmt.Function stmt) {
-        env.define(stmt.name.lexeme, new LoxFunction(stmt, env));
+        env.define(stmt.name.lexeme, new LoxFunction(stmt, env, false));
         return null;
     }
 
@@ -102,6 +109,11 @@ public class Interpreter implements
     }
 
     // Expressions
+
+    @Override
+    public Object visitThisExpr(Expr.This expr) {
+        return lookUpVariable(expr.keyword, expr);
+    }
 
     @Override
     public Object visitSetExpr(Expr.Set expr) {

@@ -9,10 +9,18 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private final Interpreter interpreter;
     private final Stack<Map<String, Boolean>> scopes = new Stack<>();
     private FunctionType currentFunction = FunctionType.NONE;
+    private ClassType currentClass = ClassType.NONE;
 
     private enum FunctionType {
         NONE,
-        FUNCTION
+        FUNCTION,
+        METHOD,
+        INITIALIZER
+    }
+
+    private enum ClassType {
+        NONE,
+        CLASS
     }
 
     Resolver(Interpreter interpreter) {
@@ -23,8 +31,23 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitClassStmt(Stmt.Class stmt) {
+        final var enclosingClass = currentClass;
+        currentClass = ClassType.CLASS;
+
         declare(stmt.name);
         define(stmt.name);
+
+        beginScope();
+        scopes.peek().put("this", true);
+        for (final var method : stmt.methods) {
+            final var decl = method.name.lexeme.equals("init")
+                ? FunctionType.INITIALIZER
+                : FunctionType.METHOD;
+            resolveFunction(method, decl);
+        }
+        endScope();
+
+        currentClass = enclosingClass;
         return null;
     }
 
@@ -75,9 +98,13 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitReturnStmt(Stmt.Return stmt) {
-        if (currentFunction != FunctionType.FUNCTION)
+        if (currentFunction == FunctionType.NONE)
             Lox.error(stmt.keyword, "Can't return from top-level code.");
-        if (stmt.value != null) resolve(stmt.value);
+        if (stmt.value != null) {
+            if (currentFunction == FunctionType.INITIALIZER)
+                Lox.error(stmt.keyword, "Can't return a value from an initializer.");
+            resolve(stmt.value);
+        }
         return null;
     }
 
@@ -89,6 +116,17 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     // Expressions
+
+    @Override
+    public Void visitThisExpr(Expr.This expr) {
+        if (currentClass == ClassType.NONE) {
+            Lox.error(expr.keyword, "Can't use 'this' outside of a class.");
+            return null;
+        }
+
+        resolveLocal(expr, expr.keyword);
+        return null;
+    }
 
     @Override
     public Void visitSetExpr(Expr.Set expr) {

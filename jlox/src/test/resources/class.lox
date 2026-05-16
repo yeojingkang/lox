@@ -1,0 +1,58 @@
+class Bacon {
+  eat() {
+    print "Crunch crunch crunch!";
+  }
+}
+
+Bacon().eat(); // Prints "Crunch crunch crunch!".
+
+var bacon = Bacon();
+bacon.texture = "crispy";
+print "The texture of this bacon is " + bacon.texture + ".";
+
+class Cake {
+  taste() {
+    var adjective = "delicious";
+    print "The " + this.flavor + " cake is " + adjective + "!";
+  }
+}
+
+var cake = Cake();
+cake.flavor = "German chocolate";
+cake.taste(); // Prints "The German chocolate cake is delicious!".
+
+class Thing {
+  getCallback() {
+    fun localFunction() {
+      print this;
+    }
+
+    return localFunction;
+  }
+}
+
+var callback = Thing().getCallback();
+callback();
+
+fun init() {
+    print "This is a function called init.";
+}
+
+init();
+
+class Inited {
+    init(x, y) {
+        this.x = x;
+        this.y = y;
+        return;
+        this.z = -1;
+    }
+}
+
+var v1 = Inited(1, 2);
+print v1.x;
+print v1.y;
+// print v1.z;
+
+// var v2 = Inited();
+// var v3 = Inited(5);

@@ -53,7 +53,7 @@ term           → factor ( ( "-" | "+" ) factor )* ;
 factor         → unary ( ( "/" | "*" ) unary )* ;
 unary          → ( "!" | "-" ) unary | call ;
 call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
-primary        → NUMBER | STRING | "true" | "false" | "nil"
+primary        → NUMBER | STRING | "true" | "false" | "nil" | "this"
                | "(" expression ")" | IDENTIFIER ;
 
 arguments      → expression ( "," expression )* ;
@@ -347,6 +347,9 @@ public class Parser {
 
         if (match(TokenType.NUMBER, TokenType.STRING))
             return new Expr.Literal(previous().literal);
+
+        if (match(TokenType.THIS))
+            return new Expr.This(previous());
 
         if (match(TokenType.IDENTIFIER))
             return new Expr.Variable(previous());
