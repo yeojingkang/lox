@@ -46,8 +46,14 @@ public class Interpreter implements
         final var methods = stmt.methods.stream()
             .collect(Collectors.toMap(
                 x -> x.name.lexeme,
-                x -> new LoxFunction(x, env, x.name.lexeme.equals("init"))));
-        final var klass = new LoxClass(stmt.name.lexeme, methods);
+                x -> new LoxFunction(x, env, x.name.lexeme.equals("init"))
+            ));
+        final var getters = stmt.getters.stream()
+            .collect(Collectors.toMap(
+                x -> x.name.lexeme,
+                x -> new LoxFunction(x, env, false)
+            ));
+        final var klass = new LoxClass(stmt.name.lexeme, methods, getters);
 
         env.assign(stmt.name, klass);
         return null;
@@ -130,7 +136,7 @@ public class Interpreter implements
     public Object visitGetExpr(Expr.Get expr) {
         final var object = evaluate(expr.object);
         if (object instanceof LoxInstance inst) {
-            return inst.get(expr.name);
+            return inst.get(this, expr.name);
         }
 
         throw new RuntimeError(expr.name, "Only instances have properties.");

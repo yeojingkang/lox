@@ -84,7 +84,8 @@ public class GenerateAst {
             )),
             Map.entry("Class", List.of(
                 "Token name",
-                "List<Stmt.Function> methods"
+                "List<Stmt.Function> methods",
+                "List<Stmt.Function> getters"
             ))
         ));
     }

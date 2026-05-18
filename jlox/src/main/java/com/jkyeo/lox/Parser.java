@@ -14,8 +14,10 @@ declaration    → classDecl
                | varDecl
                | statement ;
 
-classDecl      → "class" IDENTIFIER "{" function* "}" ;
+classDecl      → "class" IDENTIFIER "{" ( function | getter )* "}" ;
 funDecl        → "fun" function ;
+
+getter         → IDENTIFIER block ;
 
 function       → IDENTIFIER "(" parameters? ")" block ;
 parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
@@ -99,17 +101,25 @@ public class Parser {
         consume(TokenType.LEFT_BRACE, "Expected '{' before class body.");
 
         List<Stmt.Function> methods = new ArrayList<>();
-        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd())
-            methods.add(function("method"));
+        List<Stmt.Function> getters = new ArrayList<>();
+        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+            final var methodName = consume(TokenType.IDENTIFIER, "Expected method or getter name.");
+            if (check(TokenType.LEFT_PAREN)) methods.add(function("method", methodName));
+            else getters.add(getter(methodName));
+        }
 
         consume(TokenType.RIGHT_BRACE, "Expected '}' after class body.");
 
-        return new Stmt.Class(name, methods);
+        return new Stmt.Class(name, methods, getters);
     }
 
-    private Stmt.Function function(String kind) {
-        final var name = consume(TokenType.IDENTIFIER, "Expected " + kind + " name.");
+    private Stmt.Function getter(Token name) {
+        consume(TokenType.LEFT_BRACE, "Expected '{' before getter body.");
+        final var body = block();
+        return new Stmt.Function(name, new ArrayList<>(), body);
+    }
 
+    private Stmt.Function function(String kind, Token name) {
         consume(TokenType.LEFT_PAREN, "Expected '(' after " + kind + " name.");
         final var parameters = new ArrayList<Token>();
         if (!check(TokenType.RIGHT_PAREN)) {
@@ -125,6 +135,11 @@ public class Parser {
         final var body = block();
 
         return new Stmt.Function(name, parameters, body);
+    }
+
+    private Stmt.Function function(String kind) {
+        final var name = consume(TokenType.IDENTIFIER, "Expected " + kind + " name.");
+        return function(kind, name);
     }
 
     private Stmt varDeclaration() {

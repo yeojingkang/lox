@@ -15,7 +15,8 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         NONE,
         FUNCTION,
         METHOD,
-        INITIALIZER
+        INITIALIZER,
+        GETTER
     }
 
     private enum ClassType {
@@ -45,6 +46,8 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
                 : FunctionType.METHOD;
             resolveFunction(method, decl);
         }
+        for (final var getter : stmt.getters)
+            resolveFunction(getter, FunctionType.GETTER);
         endScope();
 
         currentClass = enclosingClass;
