@@ -14,9 +14,10 @@ declaration    → classDecl
                | varDecl
                | statement ;
 
-classDecl      → "class" IDENTIFIER "{" ( function | getter )* "}" ;
+classDecl      → "class" IDENTIFIER "{" ( function | static | getter )* "}" ;
 funDecl        → "fun" function ;
 
+static         → "class" function ;
 getter         → IDENTIFIER block ;
 
 function       → IDENTIFIER "(" parameters? ")" block ;
@@ -101,16 +102,20 @@ public class Parser {
         consume(TokenType.LEFT_BRACE, "Expected '{' before class body.");
 
         List<Stmt.Function> methods = new ArrayList<>();
+        List<Stmt.Function> staticMethods = new ArrayList<>();
         List<Stmt.Function> getters = new ArrayList<>();
         while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
-            final var methodName = consume(TokenType.IDENTIFIER, "Expected method or getter name.");
-            if (check(TokenType.LEFT_PAREN)) methods.add(function("method", methodName));
-            else getters.add(getter(methodName));
+            if (match(TokenType.CLASS)) staticMethods.add(function("static method"));
+            else {
+                final var methodName = consume(TokenType.IDENTIFIER, "Expected method or getter name.");
+                if (check(TokenType.LEFT_PAREN)) methods.add(function("method", methodName));
+                else getters.add(getter(methodName));
+            }
         }
 
         consume(TokenType.RIGHT_BRACE, "Expected '}' after class body.");
 
-        return new Stmt.Class(name, methods, getters);
+        return new Stmt.Class(name, methods, staticMethods, getters);
     }
 
     private Stmt.Function getter(Token name) {

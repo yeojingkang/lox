@@ -48,12 +48,17 @@ public class Interpreter implements
                 x -> x.name.lexeme,
                 x -> new LoxFunction(x, env, x.name.lexeme.equals("init"))
             ));
+        final var staticMethods = stmt.staticMethods.stream()
+            .collect(Collectors.toMap(
+                x -> x.name.lexeme,
+                x -> new LoxFunction(x, env, false)
+            ));
         final var getters = stmt.getters.stream()
             .collect(Collectors.toMap(
                 x -> x.name.lexeme,
                 x -> new LoxFunction(x, env, false)
             ));
-        final var klass = new LoxClass(stmt.name.lexeme, methods, getters);
+        final var klass = new LoxClass(stmt.name.lexeme, methods, getters, staticMethods);
 
         env.assign(stmt.name, klass);
         return null;

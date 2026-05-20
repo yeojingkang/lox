@@ -1,0 +1,20 @@
+class Math {
+  init(b, h) {
+    this.base = b;
+    this.height = h;
+  }
+
+  class square(n) {
+    return n * n;
+  }
+
+  cube(x) { return x * x * x; }
+
+  area { return 0.5 * this.base * this.height; }
+}
+
+print Math.square(3); // Prints "9".
+
+var m = Math(2, 3);
+//print m.square(4); // Cannot access static methods from instances
+print m.area; // Prints "3".

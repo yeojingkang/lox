@@ -1,17 +1,29 @@
 package com.jkyeo.lox;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class LoxClass implements LoxCallable {
+public class LoxClass extends LoxInstance implements LoxCallable {
     final String name;
     private final Map<String, LoxFunction> methods;
     private final Map<String, LoxFunction> getters;
 
-    LoxClass(String name, Map<String, LoxFunction> methods, Map<String, LoxFunction> getters) {
+    LoxClass(String name,
+             Map<String, LoxFunction> methods,
+             Map<String, LoxFunction> getters,
+             Map<String, LoxFunction> staticMethods) {
+        super(new LoxClass("$meta " + name, staticMethods));
         this.name = name;
         this.methods = methods;
         this.getters = getters;
+    }
+
+    LoxClass(String name, Map<String, LoxFunction> methods) {
+        super(null);
+        this.name = name;
+        this.methods = methods;
+        this.getters = new HashMap<>();
     }
 
     LoxFunction findMethod(String name) {

@@ -16,6 +16,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         FUNCTION,
         METHOD,
         INITIALIZER,
+        STATIC,
         GETTER
     }
 
@@ -46,6 +47,8 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
                 : FunctionType.METHOD;
             resolveFunction(method, decl);
         }
+        for (final var staticMethod : stmt.staticMethods)
+            resolveFunction(staticMethod , FunctionType.STATIC);
         for (final var getter : stmt.getters)
             resolveFunction(getter, FunctionType.GETTER);
         endScope();
