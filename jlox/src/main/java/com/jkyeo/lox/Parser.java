@@ -14,7 +14,7 @@ declaration    → classDecl
                | varDecl
                | statement ;
 
-classDecl      → "class" IDENTIFIER "{" function* "}" ;
+classDecl      → "class" IDENTIFIER ( "<" IDENTIFIER )? "{" function* "}" ;
 funDecl        → "fun" function ;
 
 function       → IDENTIFIER "(" parameters? ")" block ;
@@ -53,8 +53,9 @@ term           → factor ( ( "-" | "+" ) factor )* ;
 factor         → unary ( ( "/" | "*" ) unary )* ;
 unary          → ( "!" | "-" ) unary | call ;
 call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
-primary        → NUMBER | STRING | "true" | "false" | "nil" | "this"
-               | "(" expression ")" | IDENTIFIER ;
+primary        → "true" | "false" | "nil" | "this"
+               | NUMBER | STRING | IDENTIFIER | "(" expression ")"
+               | "super" "." IDENTIFIER ;
 
 arguments      → expression ( "," expression )* ;
 */
@@ -96,6 +97,10 @@ public class Parser {
     private Stmt classDeclaration() {
         final var name = consume(TokenType.IDENTIFIER, "Expected class name.");
 
+        Expr.Variable superclass = match(TokenType.LESS)
+            ? new Expr.Variable(consume(TokenType.IDENTIFIER, "Expected superclass name."))
+            : null;
+
         consume(TokenType.LEFT_BRACE, "Expected '{' before class body.");
 
         List<Stmt.Function> methods = new ArrayList<>();
@@ -104,7 +109,7 @@ public class Parser {
 
         consume(TokenType.RIGHT_BRACE, "Expected '}' after class body.");
 
-        return new Stmt.Class(name, methods);
+        return new Stmt.Class(name, superclass, methods);
     }
 
     private Stmt.Function function(String kind) {
@@ -350,6 +355,13 @@ public class Parser {
 
         if (match(TokenType.THIS))
             return new Expr.This(previous());
+
+        if (match(TokenType.SUPER)) {
+            final var keyword = previous();
+            consume(TokenType.DOT, "Expected '.' after 'super'.");
+            final var method = consume(TokenType.IDENTIFIER, "Expected superclass method name.");
+            return new Expr.Super(keyword, method);
+        }
 
         if (match(TokenType.IDENTIFIER))
             return new Expr.Variable(previous());

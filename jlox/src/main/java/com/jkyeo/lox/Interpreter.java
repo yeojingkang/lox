@@ -41,13 +41,28 @@ public class Interpreter implements
 
     @Override
     public Void visitClassStmt(Stmt.Class stmt) {
+        Object superclass = null;
+        if (stmt.superclass != null) {
+            superclass = evaluate(stmt.superclass);
+            if (!(superclass instanceof LoxClass))
+                throw new RuntimeError(stmt.superclass.name, "Superclass must be a class.");
+        }
+
         env.define(stmt.name.lexeme, null);
+
+        if (stmt.superclass != null) {
+            env = new Environment(env);
+            env.define("super", superclass);
+        }
 
         final var methods = stmt.methods.stream()
             .collect(Collectors.toMap(
                 x -> x.name.lexeme,
                 x -> new LoxFunction(x, env, x.name.lexeme.equals("init"))));
-        final var klass = new LoxClass(stmt.name.lexeme, methods);
+        final var klass = new LoxClass(stmt.name.lexeme, (LoxClass)superclass, methods);
+
+        if (stmt.superclass != null)
+            env = env.enclosing;
 
         env.assign(stmt.name, klass);
         return null;
@@ -111,6 +126,19 @@ public class Interpreter implements
     // Expressions
 
     @Override
+    public Object visitSuperExpr(Expr.Super expr) {
+        final var distance = locals.get(expr);
+        final var superclass = (LoxClass)env.getAt(distance, "super");
+
+        final var object = (LoxInstance)env.getAt(distance - 1, "this");
+
+        final var method = superclass.findMethod(expr.method.lexeme);
+        if (method == null)
+            throw new RuntimeError(expr.method, "Undefined property '" + expr.method.lexeme + "'.");
+        return method.bind(object);
+    }
+
+    @Override
     public Object visitThisExpr(Expr.This expr) {
         return lookUpVariable(expr.keyword, expr);
     }
@@ -142,7 +170,7 @@ public class Interpreter implements
         final var arguments = expr.arguments.stream().map(this::evaluate);
 
         if (!(callee instanceof LoxCallable fn))
-            throw new RuntimeError(expr.paren, "Can only call functions and classes");
+            throw new RuntimeError(expr.paren, "Can only call functions and classes.");
 
         if (fn.arity() != expr.arguments.size())
             throw new RuntimeError(expr.paren, "Expected " + fn.arity() + " arguments but got " + expr.arguments.size() + ".");

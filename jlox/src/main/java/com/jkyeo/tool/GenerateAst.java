@@ -53,6 +53,10 @@ public class GenerateAst {
             )),
             Map.entry("This", List.of(
                 "Token keyword"
+            )),
+            Map.entry("Super", List.of(
+                "Token keyword",
+                "Token method"
             ))
         ));
 
@@ -84,6 +88,7 @@ public class GenerateAst {
             )),
             Map.entry("Class", List.of(
                 "Token name",
+                "Expr.Variable superclass",
                 "List<Stmt.Function> methods"
             ))
         ));

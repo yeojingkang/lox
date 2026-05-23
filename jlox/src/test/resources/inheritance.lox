@@ -1,0 +1,95 @@
+var I = 10;
+
+// class Class < I {} // Non-class superclass
+// class Foo < Foo {} // Self-inheriting
+
+// Cyclic inheritance
+// class A < B {}
+// class B < A {}
+
+// Cyclic inheritance?
+class B {}
+class A < B {}
+class B < A {} // Shadows the first B
+// B().f(); // Does not loop infinitely looking for f
+
+class Base {
+    init() { print "Base"; }
+    b() { print "base method"; }
+}
+
+class Sub < Base {
+    init() {
+        super.init();
+        print "Sub";
+    }
+    s() { print "sub method"; }
+}
+
+fun inner(base) {
+    class InnerSub < base {
+        init() {
+            super.init();
+            print "InnerSub";
+        }
+        i() { print "inner sub method"; }
+    }
+
+    var inst = InnerSub();
+    inst.i();
+    inst.b();
+    // inst.s(); // Calling undefined function
+}
+
+var baseInst = Base();
+var subInst = Sub();
+var innerInst = inner(Base); // Instantiating out-of-scope class
+
+print "";
+baseInst.b();
+subInst.b();
+// baseInst.s(); // Calling subclass function
+subInst.s();
+
+
+print "";
+class Doughnut {
+  cook() {
+    print "Fry until golden brown.";
+  }
+
+  eat() {
+    print "Doughnut eat";
+  }
+}
+
+class BostonCream < Doughnut {
+  cook() {
+    super.cook();
+    print "Pipe full of custard and coat with chocolate.";
+  }
+}
+
+class SugaredBostonCream < BostonCream {
+  cook() {
+    super.cook();
+    print "Sprinkle a layer of sugar on top.";
+  }
+
+  eat() {
+    super.eat();
+    print "SugaredBostonCream eat";
+  }
+}
+
+SugaredBostonCream().cook();
+SugaredBostonCream().eat();
+
+// super.f(); // Using super outside a class
+class S {
+    foo() {
+        // super.foo(); // Using super without a superclass
+        print "S";
+    }
+}
+// S().foo();
