@@ -251,6 +251,8 @@ public class Interpreter implements
             }
             case SLASH -> {
                 checkNumberOperands(expr.operator, lvalue, rvalue);
+                if ((double)rvalue == 0.0)
+                    throw new RuntimeError(expr.operator, "Division by zero.");
                 yield (double)lvalue / (double)rvalue;
             }
             case STAR -> {
@@ -260,8 +262,10 @@ public class Interpreter implements
             case PLUS -> {
                 if (lvalue instanceof Double && rvalue instanceof Double)
                     yield (double)lvalue + (double)rvalue;
-                if (lvalue instanceof String && rvalue instanceof String)
-                    yield (String)lvalue + (String)rvalue;
+                if (lvalue instanceof String)
+                    yield (String)lvalue + stringify(rvalue);
+                if (rvalue instanceof String)
+                    yield stringify(lvalue) + (String)rvalue;
                 throw new RuntimeError(expr.operator, "Operands must be two numbers or two strings.");
             }
 
