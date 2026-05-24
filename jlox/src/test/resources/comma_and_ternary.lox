@@ -1,0 +1,17 @@
+print 1,2,3;
+
+print true ? 7 : 8;
+print false ? 7 : 8;
+
+print 1 == 0 ? 1 + 3 ? 4 : 5 : 5/7 ? 2 : 3 ? 5 : 8;
+
+// 1 ? ; // Incomplete ternary
+// 1 ? 1 ; // Incomplete ternary
+
+var x = 1;
+fun test(y) {
+    return x < y ? true : false;
+}
+
+print test(4);
+print test(0);

@@ -178,6 +178,13 @@ public class Interpreter implements
     }
 
     @Override
+    public Object visitTernaryExpr(Expr.Ternary expr) {
+        return isTruthy(evaluate(expr.condition))
+            ? evaluate(expr.trueBody)
+            : evaluate(expr.falseBody);
+    }
+
+    @Override
     public Object visitLogicalExpr(Expr.Logical expr) {
         final var left = evaluate(expr.left);
 
@@ -276,6 +283,7 @@ public class Interpreter implements
             }
             case EQ_EQ -> isEqual(lvalue, rvalue);
             case BANG_EQ -> !isEqual(lvalue, rvalue);
+            case COMMA -> rvalue;
 
             default -> null;
         };

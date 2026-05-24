@@ -41,10 +41,12 @@ printStmt      → "print" expression ";" ;
 block          → "{" declaration* "}" ;
 
 ***************** Expressions *****************
-expression     → assignment ;
+expression     → comma ;
 
+comma          → assignment ("," assignment)* ;
 assignment     → ( call "." )? IDENTIFIER "=" assignment
-               | logic_or ;
+               | ternary ;
+ternary        → logic_or ("?" expression ":" ternary)? ;
 logic_or       → logic_and ( "or" logic_and )* ;
 logic_and      → equality ( "and" equality )* ;
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
@@ -241,7 +243,26 @@ public class Parser {
     }
 
     private Expr expression() {
-        return assignment();
+        return comma();
+    }
+
+    private Expr comma() {
+        return leftAssocBinary(
+                new TokenType[]{ TokenType.COMMA },
+                this::ternary);
+    }
+
+    private Expr ternary() {
+        final var expr = equality();
+
+        if (match(TokenType.QUESTION)) {
+            final var trueBody = expression();
+            consume(TokenType.COLON, "Expected : after ?");
+            final var falseBody = ternary();
+            return new Expr.Ternary(expr, trueBody, falseBody);
+        }
+
+        return expr;
     }
 
     private Expr assignment() {
@@ -368,7 +389,7 @@ public class Parser {
 
         if (match(TokenType.LEFT_PAREN)) {
             final var expr = expression();
-            consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
+            consume(TokenType.RIGHT_PAREN, "Expected ')' after expression.");
             return new Expr.Grouping(expr);
         }
 

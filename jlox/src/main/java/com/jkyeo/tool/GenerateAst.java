@@ -21,13 +21,19 @@ public class GenerateAst {
                 "Token operator",
                 "Expr right"
             )),
-            Map.entry("Grouping", List.of("Expr expression")),
-            Map.entry("Literal", List.of("Object value")),
+            Map.entry("Grouping", List.of(
+                "Expr expression"
+            )),
+            Map.entry("Literal", List.of(
+                "Object value"
+            )),
             Map.entry("Unary", List.of(
                 "Token operator",
                 "Expr right"
             )),
-            Map.entry("Variable", List.of("Token name")),
+            Map.entry("Variable", List.of(
+            "Token name"
+            )),
             Map.entry("Assign", List.of(
                 "Token name",
                 "Expr value"
@@ -57,6 +63,11 @@ public class GenerateAst {
             Map.entry("Super", List.of(
                 "Token keyword",
                 "Token method"
+            )),
+            Map.entry("Ternary", List.of(
+                "Expr condition",
+                "Expr trueBody",
+                "Expr falseBody"
             ))
         ));
 

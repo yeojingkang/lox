@@ -4,63 +4,18 @@ import java.util.List;
 
 abstract class Stmt{
   interface Visitor<R> {
-    R visitReturnStmt(Return stmt);
-    R visitBlockStmt(Block stmt);
-    R visitIfStmt(If stmt);
     R visitClassStmt(Class stmt);
     R visitFunctionStmt(Function stmt);
     R visitPrintStmt(Print stmt);
     R visitVarStmt(Var stmt);
     R visitExpressionStmt(Expression stmt);
     R visitWhileStmt(While stmt);
+    R visitReturnStmt(Return stmt);
+    R visitBlockStmt(Block stmt);
+    R visitIfStmt(If stmt);
   }
 
   abstract <R> R accept(Visitor<R> visitor);
-
-  static class Return extends Stmt {
-    Return(Token keyword, Expr value) {
-      this.keyword = keyword;
-      this.value = value;
-    }
-
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitReturnStmt(this);
-    }
-
-    final Token keyword;
-    final Expr value;
-  }
-
-  static class Block extends Stmt {
-    Block(List<Stmt> statements) {
-      this.statements = statements;
-    }
-
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitBlockStmt(this);
-    }
-
-    final List<Stmt> statements;
-  }
-
-  static class If extends Stmt {
-    If(Expr condition, Stmt thenBranch, Stmt elseBranch) {
-      this.condition = condition;
-      this.thenBranch = thenBranch;
-      this.elseBranch = elseBranch;
-    }
-
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitIfStmt(this);
-    }
-
-    final Expr condition;
-    final Stmt thenBranch;
-    final Stmt elseBranch;
-  }
 
   static class Class extends Stmt {
     Class(Token name, Expr.Variable superclass, List<Stmt.Function> methods) {
@@ -150,5 +105,50 @@ abstract class Stmt{
 
     final Expr condition;
     final Stmt body;
+  }
+
+  static class Return extends Stmt {
+    Return(Token keyword, Expr value) {
+      this.keyword = keyword;
+      this.value = value;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitReturnStmt(this);
+    }
+
+    final Token keyword;
+    final Expr value;
+  }
+
+  static class Block extends Stmt {
+    Block(List<Stmt> statements) {
+      this.statements = statements;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitBlockStmt(this);
+    }
+
+    final List<Stmt> statements;
+  }
+
+  static class If extends Stmt {
+    If(Expr condition, Stmt thenBranch, Stmt elseBranch) {
+      this.condition = condition;
+      this.thenBranch = thenBranch;
+      this.elseBranch = elseBranch;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitIfStmt(this);
+    }
+
+    final Expr condition;
+    final Stmt thenBranch;
+    final Stmt elseBranch;
   }
 }
