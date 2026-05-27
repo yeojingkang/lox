@@ -4,7 +4,6 @@ import java.util.List;
 
 abstract class Stmt{
   interface Visitor<R> {
-    R visitBreakStmt(Break stmt);
     R visitClassStmt(Class stmt);
     R visitWhileStmt(While stmt);
     R visitVarStmt(Var stmt);
@@ -14,20 +13,10 @@ abstract class Stmt{
     R visitFunctionStmt(Function stmt);
     R visitBlockStmt(Block stmt);
     R visitExpressionStmt(Expression stmt);
+    R visitBreakStmt(Break stmt);
   }
 
   abstract <R> R accept(Visitor<R> visitor);
-
-  static class Break extends Stmt {
-    Break() {
-    }
-
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitBreakStmt(this);
-    }
-
-  }
 
   static class Class extends Stmt {
     Class(Token name, Expr.Variable superclass, List<Stmt.Function> methods) {
@@ -122,10 +111,9 @@ abstract class Stmt{
   }
 
   static class Function extends Stmt {
-    Function(Token name, List<Token> params, List<Stmt> body) {
+    Function(Token name, Expr.Lambda definition) {
       this.name = name;
-      this.params = params;
-      this.body = body;
+      this.definition = definition;
     }
 
     @Override
@@ -134,8 +122,7 @@ abstract class Stmt{
     }
 
     final Token name;
-    final List<Token> params;
-    final List<Stmt> body;
+    final Expr.Lambda definition;
   }
 
   static class Block extends Stmt {
@@ -162,5 +149,16 @@ abstract class Stmt{
     }
 
     final Expr expression;
+  }
+
+  static class Break extends Stmt {
+    Break() {
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitBreakStmt(this);
+    }
+
   }
 }

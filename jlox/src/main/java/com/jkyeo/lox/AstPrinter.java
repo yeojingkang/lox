@@ -26,6 +26,11 @@ public class AstPrinter implements Expr.Visitor<String>{
     }
 
     @Override
+    public String visitLambdaExpr(Expr.Lambda expr) {
+        return "lambda";
+    }
+
+    @Override
     public String visitCallExpr(Expr.Call expr) {
         return parenthesize("call", expr.callee)
             + parenthesize("args", expr.arguments.toArray(Expr[]::new));

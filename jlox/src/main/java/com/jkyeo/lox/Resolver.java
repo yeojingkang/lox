@@ -15,7 +15,8 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         NONE,
         FUNCTION,
         METHOD,
-        INITIALIZER
+        INITIALIZER,
+        LAMBDA
     }
 
     private enum ClassType {
@@ -55,7 +56,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             final var decl = method.name.lexeme.equals("init")
                 ? FunctionType.INITIALIZER
                 : FunctionType.METHOD;
-            resolveFunction(method, decl);
+            resolveLambda(method.definition, decl);
         }
         endScope();
 
@@ -87,7 +88,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     public Void visitFunctionStmt(Stmt.Function stmt) {
         declare(stmt.name);
         define(stmt.name);
-        resolveFunction(stmt, FunctionType.FUNCTION);
+        resolveLambda(stmt.definition, FunctionType.FUNCTION);
         return null;
     }
 
@@ -136,6 +137,12 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     // Expressions
+
+    @Override
+    public Void visitLambdaExpr(Expr.Lambda expr) {
+        resolveLambda(expr, FunctionType.LAMBDA);
+        return null;
+    }
 
     @Override
     public Void visitSuperExpr(Expr.Super expr) {
@@ -255,16 +262,16 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         }
     }
 
-    private void resolveFunction(Stmt.Function function, FunctionType type) {
+    private void resolveLambda(Expr.Lambda lambda, FunctionType type) {
         final var enclosingFunction = currentFunction;
         currentFunction = type;
 
         beginScope();
-        for (final var param : function.params) {
+        for (final var param : lambda.params) {
             declare(param);
             define(param);
         }
-        resolve(function.body);
+        resolve(lambda.body);
         endScope();
 
         currentFunction = enclosingFunction;

@@ -58,7 +58,7 @@ public class Interpreter implements
         final var methods = stmt.methods.stream()
             .collect(Collectors.toMap(
                 x -> x.name.lexeme,
-                x -> new LoxFunction(x, env, x.name.lexeme.equals("init"))));
+                x -> new LoxFunction(x.name.lexeme, x.definition, env, x.name.lexeme.equals("init"))));
         final var klass = new LoxClass(stmt.name.lexeme, (LoxClass)superclass, methods);
 
         if (stmt.superclass != null)
@@ -76,7 +76,7 @@ public class Interpreter implements
 
     @Override
     public Void visitFunctionStmt(Stmt.Function stmt) {
-        env.define(stmt.name.lexeme, new LoxFunction(stmt, env, false));
+        env.define(stmt.name.lexeme, new LoxFunction(stmt.name.lexeme, stmt.definition, env, false));
         return null;
     }
 
@@ -169,6 +169,11 @@ public class Interpreter implements
         }
 
         throw new RuntimeError(expr.name, "Only instances have properties.");
+    }
+
+    @Override
+    public Object visitLambdaExpr(Expr.Lambda expr) {
+        return new LoxFunction(null, expr, env, false);
     }
 
     @Override

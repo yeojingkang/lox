@@ -17,8 +17,7 @@ declaration    → classDecl
 classDecl      → "class" IDENTIFIER ( "<" IDENTIFIER )? "{" function* "}" ;
 funDecl        → "fun" function ;
 
-function       → IDENTIFIER "(" parameters? ")" block ;
-parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
+function       → IDENTIFIER lambda ;
 
 varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 
@@ -59,9 +58,13 @@ unary          → ( "!" | "-" ) unary | call ;
 call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
 primary        → "true" | "false" | "nil" | "this"
                | NUMBER | STRING | IDENTIFIER | "(" expression ")"
+               | "fun" lambda
                | "super" "." IDENTIFIER ;
 
-arguments      → expression ( "," expression )* ;
+lambda         → "(" parameters? ")" block
+parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
+
+arguments      → assignment ( "," assignment )* ;
 */
 
 
@@ -92,7 +95,7 @@ public class Parser {
         try {
             if (match(TokenType.CLASS)) return classDeclaration();
             if (match(TokenType.VAR)) return varDeclaration();
-            if (match(TokenType.FUN)) return function("function");
+            if (check(TokenType.FUN) && checkNext(TokenType.IDENTIFIER)) return functionDeclaration();
             return statement();
         } catch (ParseError err) {
             synchronize();
@@ -118,24 +121,15 @@ public class Parser {
         return new Stmt.Class(name, superclass, methods);
     }
 
+    private Stmt.Function functionDeclaration() {
+        consume(TokenType.FUN, "Expected 'fun' in function declaration.");
+        return function("function");
+    }
+
     private Stmt.Function function(String kind) {
         final var name = consume(TokenType.IDENTIFIER, "Expected " + kind + " name.");
-
-        consume(TokenType.LEFT_PAREN, "Expected '(' after " + kind + " name.");
-        final var parameters = new ArrayList<Token>();
-        if (!check(TokenType.RIGHT_PAREN)) {
-            do {
-                if (parameters.size() >= 255)
-                    error(peek(), "Can't have more than 255 parameters.");
-                parameters.add(consume(TokenType.IDENTIFIER, "Expected parameter name."));
-            } while (match(TokenType.COMMA));
-        }
-        consume(TokenType.RIGHT_PAREN, "Expected ')' after parameters");
-
-        consume(TokenType.LEFT_BRACE, "Expected '{' before " + kind + " body.");
-        final var body = block();
-
-        return new Stmt.Function(name, parameters, body);
+        final var definition = lambda(kind);
+        return new Stmt.Function(name, definition);
     }
 
     private Stmt varDeclaration() {
@@ -378,7 +372,7 @@ public class Parser {
             do {
                 if (arguments.size() >= 255)
                     error(peek(), "Can't have more than 255 arguments.");
-                arguments.add(expression());
+                arguments.add(assignment());
             } while (match(TokenType.COMMA));
         }
         final var paren = consume(TokenType.RIGHT_PAREN, "Expected ')' after arguments");
@@ -406,6 +400,9 @@ public class Parser {
 
         if (match(TokenType.IDENTIFIER))
             return new Expr.Variable(previous());
+
+        if (match(TokenType.FUN))
+            return lambda("lambda");
 
         if (match(TokenType.LEFT_PAREN)) {
             final var expr = expression();
@@ -440,6 +437,24 @@ public class Parser {
         return expr;
     }
 
+    private Expr.Lambda lambda(String kind) {
+        consume(TokenType.LEFT_PAREN, "Expected '(' in " + kind + " definition.");
+        final var parameters = new ArrayList<Token>();
+        if (!check(TokenType.RIGHT_PAREN)) {
+            do {
+                if (parameters.size() >= 255)
+                    error(peek(), "Can't have more than 255 parameters.");
+                parameters.add(consume(TokenType.IDENTIFIER, "Expected parameter name."));
+            } while (match(TokenType.COMMA));
+        }
+        consume(TokenType.RIGHT_PAREN, "Expected ')' after parameters.");
+
+        consume(TokenType.LEFT_BRACE, "Expected '{' before " + kind + " body.");
+        final var body = block();
+
+        return new Expr.Lambda(parameters, body);
+    }
+
     private boolean match(TokenType... types) {
         for (final var type : types) {
             if (check(type)) {
@@ -454,6 +469,10 @@ public class Parser {
         if (isAtEnd()) return false;
         return peek().type == type;
     }
+    private boolean checkNext(TokenType type) {
+        if (isAtEnd()) return false;
+        return peekNext().type == type;
+    }
 
     private Token advance() {
         if (!isAtEnd()) ++current;
@@ -466,6 +485,10 @@ public class Parser {
 
     private Token peek() {
         return tokens.get(current);
+    }
+    private Token peekNext() {
+        if (isAtEnd()) return peek();
+        return tokens.get(current + 1);
     }
 
     private Token previous() {

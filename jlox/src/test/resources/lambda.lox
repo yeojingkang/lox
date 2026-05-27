@@ -1,0 +1,49 @@
+// Lambda arg
+fun thrice(fn) {
+  for (var i = 1; i <= 3; i = i + 1) {
+    fn(i);
+  }
+}
+
+thrice(fun (a) {
+  print a;
+});
+
+print "";
+print fun () {};
+
+// Mutated vars
+print "";
+var x = 0;
+var f = fun () { print x; };
+f();
+(fun () { print x; })();
+
+x = 1;
+
+f();
+(fun () { print x; })();
+
+// Reassigning lambdas
+print "";
+var ff = fun () { print "f1"; };
+ff();
+ff = fun () { print "f2"; };
+ff();
+
+print "";
+fun ex() {
+    var a = 20;
+
+    class B {
+        init() {
+            this.i = a + 5;
+        }
+    }
+
+    (fun () {
+        print a;
+        print B().i;
+    })();
+}
+ex();
