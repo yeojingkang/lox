@@ -27,10 +27,12 @@ statement      → exprStmt
                | ifStmt
                | printStmt
                | returnStmt
+               | breakStmt
                | whileStmt
                | block ;
 
 returnStmt     → "return" expression? ";" ;
+breakStmt      → "break" ";" ;
 forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
                  expression? ";"
                  expression? "   )" statement ;
@@ -70,6 +72,8 @@ public class Parser {
 
     private final List<Token> tokens;
     private int current = 0;
+
+    private int breakableLevel = 0;
 
     Parser(List<Token> tokens) {
         this.tokens = tokens;
@@ -147,6 +151,7 @@ public class Parser {
     }
 
     private Stmt statement() {
+        if (match(TokenType.BREAK)) return breakStatement();
         if (match(TokenType.FOR)) return forStatement();
         if (match(TokenType.IF)) return ifStatement();
         if (match(TokenType.PRINT)) return printStatement();
@@ -164,6 +169,14 @@ public class Parser {
         return new Stmt.Return(keyword, expr);
     }
 
+    private Stmt breakStatement() {
+        if (breakableLevel == 0)
+            throw error(previous(), "Unexpected break statement outside loops.");
+
+        consume(TokenType.SEMICOLON, "Expected ';' after break.");
+        return new Stmt.Break();
+    }
+
     private Stmt forStatement() {
         consume(TokenType.LEFT_PAREN, "Expected '(' after for.");
         final var initializer =
@@ -175,7 +188,7 @@ public class Parser {
         final var increment = !check(TokenType.RIGHT_PAREN) ? expression() : null;
         consume(TokenType.RIGHT_PAREN, "Expected ')' after for clauses.");
 
-        var body = statement();
+        var body = breakableStatement();
 
         // Parsed as:
         /*
@@ -203,9 +216,16 @@ public class Parser {
         consume(TokenType.LEFT_PAREN, "Expected '(' after while.");
         final var condition = expression();
         consume(TokenType.RIGHT_PAREN, "Expected ')' after while condition.");
-        final var body = statement();
+        final var body = breakableStatement();
 
         return new Stmt.While(condition, body);
+    }
+
+    private Stmt breakableStatement() {
+        ++breakableLevel;
+        final var body = statement();
+        --breakableLevel;
+        return body;
     }
 
     private Stmt ifStatement() {
@@ -249,24 +269,11 @@ public class Parser {
     private Expr comma() {
         return leftAssocBinary(
                 new TokenType[]{ TokenType.COMMA },
-                this::ternary);
-    }
-
-    private Expr ternary() {
-        final var expr = equality();
-
-        if (match(TokenType.QUESTION)) {
-            final var trueBody = expression();
-            consume(TokenType.COLON, "Expected : after ?");
-            final var falseBody = ternary();
-            return new Expr.Ternary(expr, trueBody, falseBody);
-        }
-
-        return expr;
+                this::assignment);
     }
 
     private Expr assignment() {
-        final var expr = logicOr();
+        final var expr = ternary();
 
         if (match(TokenType.EQ)) {
             final var eq = previous();
@@ -278,6 +285,19 @@ public class Parser {
                 return new Expr.Set(getExpr.object, getExpr.name, value);
 
             error(eq, "Invalid assignment target.");
+        }
+
+        return expr;
+    }
+
+    private Expr ternary() {
+        final var expr = logicOr();
+
+        if (match(TokenType.QUESTION)) {
+            final var trueBody = expression();
+            consume(TokenType.COLON, "Expected : after ?");
+            final var falseBody = ternary();
+            return new Expr.Ternary(expr, trueBody, falseBody);
         }
 
         return expr;

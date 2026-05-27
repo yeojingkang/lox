@@ -1,0 +1,46 @@
+var i = 0;
+while (i < 100) {
+    if (i == 10) {
+        print "breaking...";
+        break;
+    }
+    i = i + 1;
+}
+
+print "finished.";
+
+print "";
+print "Nested loop:";
+
+var x = 0;
+i = 0;
+while (true) {
+    if (i >= 10)
+        break;
+    print i;
+    print "outer";
+
+    x = 0;
+    while (x < 100) {
+        if (x == 5) {
+            print "breaking...";
+            break;
+        }
+        x = x + 1;
+    }
+
+    i = i + 2;
+}
+
+print "finished.";
+
+print "";
+print "For loop:";
+
+for (var a = 0;; a = a + 2) {
+    if (a > 10)
+        break;
+    print a;
+}
+
+print "finished.";

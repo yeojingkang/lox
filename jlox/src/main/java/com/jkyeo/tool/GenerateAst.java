@@ -101,7 +101,8 @@ public class GenerateAst {
                 "Token name",
                 "Expr.Variable superclass",
                 "List<Stmt.Function> methods"
-            ))
+            )),
+            Map.entry("Break", List.of())
         ));
     }
 
