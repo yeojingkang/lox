@@ -12,6 +12,11 @@ Features I added to Lox outside its specifications:
     <e1>, <e2> // Evaluates <e1>, then <e2> and returns the value of <e2>
     ```
 - String concatenation with non-string datatypes
+- `break` statement
+- Lambdas
+    ```
+    fun (<params>) { <statements> }
+    ```
 
 ## Stretch goals
 - Implement Lox in C++
