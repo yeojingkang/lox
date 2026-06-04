@@ -219,6 +219,7 @@ void list_print_all_backward(List* list)
     }
 }
 
+/*
 int main(void)
 {
     //printf("Hello, world!\n");
@@ -263,3 +264,4 @@ int main(void)
 
     list_destroy(list);
 }
+*/
