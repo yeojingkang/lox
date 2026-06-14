@@ -14,4 +14,7 @@
 
 void* reallocate(void* pointer, size_t oldSize, size_t newSize);
 
+void initMemory();
+void freeMemory();
+
 #endif

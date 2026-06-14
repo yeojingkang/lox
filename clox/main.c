@@ -1,8 +1,11 @@
 #include "common.h"
 #include "chunk.h"
 #include "debug.h"
+#include "memory.h"
 
 int main(int argc, const char** argv) {
+    initMemory();
+    
     Chunk chunk;
     initChunk(&chunk);
 
@@ -29,5 +32,6 @@ int main(int argc, const char** argv) {
 
     freeChunk(&chunk);
 
+    freeMemory();
     return 0;
 }
