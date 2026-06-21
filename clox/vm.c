@@ -25,8 +25,7 @@ static InterpretResult run() {
 #define BINARY_OP(op) \
     do { \
         double r = pop(); \
-        double l = pop(); \
-        push(l op r); \
+        vm.stack.values[vm.stack.count - 1] = vm.stack.values[vm.stack.count - 1] op r; \
     } while (false)
 
     for (;;) {
@@ -49,7 +48,7 @@ static InterpretResult run() {
                 break;
             }
             case OP_NEGATE:
-                push(-pop());
+                vm.stack.values[vm.stack.count - 1] = -vm.stack.values[vm.stack.count - 1];
                 break;
             case OP_ADD:        BINARY_OP(+); break;
             case OP_SUBTRACT:   BINARY_OP(-); break;
