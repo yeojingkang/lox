@@ -135,6 +135,16 @@ int main(int argc, const char** argv) {
     ch1(&chunk);
     ch2(&chunk);
 
+    int constant = addConstant(&chunk, 3.14);
+    writeChunk(&chunk, OP_CONSTANT, 1);
+    writeChunk(&chunk, constant, 1);
+    writeChunk(&chunk, OP_CONSTANT, 1);
+    writeChunk(&chunk, constant, 1);
+    writeChunk(&chunk, OP_CONSTANT, 1);
+    writeChunk(&chunk, constant, 1);
+    writeChunk(&chunk, OP_CONSTANT, 1);
+    writeChunk(&chunk, constant, 1);
+
     writeChunk(&chunk, OP_RETURN, 999);
 
     disassembleChunk(&chunk, "test chunk");

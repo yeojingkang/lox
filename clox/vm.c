@@ -6,11 +6,12 @@
 VM vm; // NOTE: Consider removing it (all VM functions require a VM arg)
 
 static void resetStack() {
-    vm.stackTop = vm.stack;
+    vm.stack.count = 0;
 }
 
 
 void initVM() {
+    initValueArray(&vm.stack);
     resetStack();
 }
 
@@ -31,7 +32,7 @@ static InterpretResult run() {
     for (;;) {
 #ifdef DEBUG_TRACE_EXECUTION
         printf("          ");
-        for (Value* slot = vm.stack; slot < vm.stackTop; slot++) {
+        for (Value* slot = vm.stack.values; slot < vm.stack.values + vm.stack.count; slot++) {
             printf("[ ");
             printValue(*slot);
             printf(" ]");
@@ -73,9 +74,10 @@ InterpretResult interpret(Chunk* chunk) {
 }
 
 void push(Value value){
-    *vm.stackTop++ = value;
+    writeValueArray(&vm.stack, value);
 }
 
 Value pop(){
-    return *(--vm.stackTop);
+    // Not using freeValueArray so stack doesn't shrink
+    return vm.stack.values[--vm.stack.count];
 }
